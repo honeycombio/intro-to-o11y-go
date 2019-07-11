@@ -6,6 +6,8 @@ import (
   "fmt"
   "log"
   "os"
+  "syscall"
+  "time"
 
   "github.com/open-telemetry/opentelemetry-go/api/core"
  	"github.com/open-telemetry/opentelemetry-go/api/metric"
@@ -28,11 +30,11 @@ var (
 		)
   appKey = tag.New("honeycomb.io/glitch/app", tag.WithDescription("The Glitch app name."))
   containerKey = tag.New("honeycomb.io/glitch/container_id", tag.WithDescription("The Glitch container id."))
-	diskMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
+	diskUsedMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
 	)
-  diskMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_quota",
+  diskQuotaMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_quota",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk quota available."),
 	)
@@ -69,11 +71,40 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
   // call ourselves minus one for some recursion and complex spans.
 }
 
+func updateDiskMetric(ctx context.Context, used, quota *metric.Float64Entry) {
+  for {
+    var stat syscall.Statfs_t
+    wd, err := os.Getwd()
+    syscall.Statfs(wd, &stat)
+
+    all := float64(stat.Blocks) * float64(stat.Bsize)
+    free := float64(stat.Bfree) * float64(stat.Bsize)
+    used.Set(ctx, all - free)
+    quota.Set(ctx, all)
+    time.Sleep(time.Second)
+  }
+}
+
 func main() {
   http.HandleFunc("/", rootHandler)
   os.Stderr.WriteString("Initializing the server...\n")
 
-  
+  ctx = tag.NewContext(context.Background(),
+    tag.Insert(appKey.String(os.Getenv("PROJECT_DOMAIN"))),
+    tag.Insert(containerKey.String(os.Getenv("HOSTNAME"))),
+	)
+
+	used := diskUsedMetric.Gauge(
+		appKey.Value(ctx),
+		containerKey.Value(ctx),
+	)
+  quota := diskQuotaMetric.Gauge(
+		appKey.Value(ctx),
+		containerKey.Value(ctx),
+	)
+
+  go updateDiskMetrics(ctx, &used, &quota)
+
   err := http.ListenAndServe(":3000", nil)
   if err != nil {
     log.Fatalf("Could not start web server: %s", err)
