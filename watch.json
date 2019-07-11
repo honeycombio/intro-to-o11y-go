@@ -15,5 +15,5 @@
       "\\.go$",
     ]
   },
-  "throttle": 30
+  "throttle": 5
 }

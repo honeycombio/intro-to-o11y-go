@@ -11,7 +11,6 @@ import (
 
   "github.com/open-telemetry/opentelemetry-go/api/core"
  	"github.com/open-telemetry/opentelemetry-go/api/metric"
-	"github.com/open-telemetry/opentelemetry-go/api/stats"
 	"github.com/open-telemetry/opentelemetry-go/api/tag"
 	apitrace "github.com/open-telemetry/opentelemetry-go/api/trace"
 	"github.com/open-telemetry/opentelemetry-go/plugin/httptrace"
@@ -71,17 +70,17 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
   // call ourselves minus one for some recursion and complex spans.
 }
 
-func updateDiskMetric(ctx context.Context, used, quota *metric.Float64Entry) {
+func updateDiskMetrics(ctx context.Context, used, quota *metric.Float64Entry) {
   for {
     var stat syscall.Statfs_t
-    wd, err := os.Getwd()
+    wd, _ := os.Getwd()
     syscall.Statfs(wd, &stat)
 
     all := float64(stat.Blocks) * float64(stat.Bsize)
     free := float64(stat.Bfree) * float64(stat.Bsize)
     used.Set(ctx, all - free)
     quota.Set(ctx, all)
-    time.Sleep(time.Second)
+    time.Sleep(time.Minute)
   }
 }
 
@@ -89,7 +88,7 @@ func main() {
   http.HandleFunc("/", rootHandler)
   os.Stderr.WriteString("Initializing the server...\n")
 
-  ctx = tag.NewContext(context.Background(),
+  ctx := tag.NewContext(context.Background(),
     tag.Insert(appKey.String(os.Getenv("PROJECT_DOMAIN"))),
     tag.Insert(containerKey.String(os.Getenv("HOSTNAME"))),
 	)
