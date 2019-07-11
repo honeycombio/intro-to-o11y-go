@@ -1,94 +1,61 @@
-# Citizen Code of Conduct
+This community is dedicated to providing a harassment-free experience for everyone. We do not tolerate harassment of participants in any form.
 
-## 1. Purpose
+All participants in the Honeycomb User Community (often referred to as Pollinators) are subject to these rules. These rules are enforced by Honeycomb employees/administrators, aka the Honeycomb team. (Honeycomb employees include the word “honeycomb” in their Pollinators usernames so you can identify them.)
 
-A primary goal of equable-burn is to be inclusive to the largest number of contributors, with the most varied and diverse backgrounds possible. As such, we are committed to providing a friendly, safe and welcoming environment for all, regardless of gender, sexual orientation, ability, ethnicity, socioeconomic status, and religion (or lack thereof).
+Applicability and scope
+This code of conduct applies to all of the Pollinators Community’s spaces, including public channels, private channels and direct messages, both online and off. Anyone who violates this code of conduct may be sanctioned or expelled from these spaces at the discretion of the Honeycomb team.
 
-This code of conduct outlines our expectations for all those who participate in our community, as well as the consequences for unacceptable behavior.
+Creating a welcoming and safe environment
+We hope to create an environment in which diverse individuals can collaborate and interact in a positive and affirming way. Examples of behavior that contributes to creating this sort of environment include:
 
-We invite all those who participate in equable-burn to help us create safe and positive experiences for everyone.
+Using welcoming and inclusive language
+Being respectful of differing viewpoints and experiences
+Gracefully accepting constructive criticism
+Focusing on what is best for the overall community
+Showing empathy towards other community members
+What we mean when we say “harassment”
+The Pollinators community will not tolerate harassment of any kind. Examples of harassment include:
 
-## 2. Open [Source/Culture/Tech] Citizenship
+Offensive comments related to gender, gender identity and expression, sexual orientation, disability, mental illness, neuro(a)typicality, physical appearance, pregnancy status, veteran status, political affiliation, marital status, body size, age, race, national origin, ethnic origin, nationality, immigration status, language, religion or lack thereof, or other identity marker.
+Unwelcome comments regarding a person’s lifestyle choices and practices, including those related to food, health, parenting, relationships, drugs, and employment.
+Deliberate misgendering, using inappropriate pronouns, or use of “dead” or rejected names.
+Gratuitous or off-topic sexual images or behavior in spaces where they’re not appropriate.
+Physical contact and simulated physical contact (eg, textual descriptions like “hug” or “backrub”) without consent or after a request to stop.
+Ongoing application of emoji of any kind to a member of the community’s postings after a request to stop.
+Threats of violence.
+Incitement of violence towards any individual or group, including encouraging a person to commit suicide or to engage in self-harm.
+Deliberate intimidation.
+Stalking or following – online or in the physical world.
+Harassing photography or recording, including logging online activity for harassment purposes.
+Sustained disruption of discussion.
+Unwelcome sexual attention.
+Patterns of inappropriate social contact, such as requesting/assuming inappropriate levels of intimacy with others.
+Continued one-on-one communication after requests to cease.
+Deliberate “outing” of any aspect of a person’s identity without their consent except as necessary to protect vulnerable people from intentional abuse.
+Publication of non-harassing private communication.
+Jokes that resemble the above, such as “hipster racism”, still count as harassment even if meant satirically or ironically.
+If you have questions or concerns about these rules, message a Honeycomb employee.
 
-A supplemental goal of this Code of Conduct is to increase open [source/culture/tech] citizenship by encouraging participants to recognize and strengthen the relationships between our actions and their effects on our community.
+How to report an issue
+If you are being harassed by a member of our community, notice that someone else is being harassed, or have any other concerns, please notify a Honeycomb employee via Direct Message.
+Note: If the person who is harassing you is a Honeycomb employee, they will not be involved in handling or resolving the incident.
 
-Communities mirror the societies in which they exist and positive action is essential to counteract the many forms of inequality and abuses of power that exist in society.
+The Honeycomb team will respond to any complaint as promptly as we can. If you do not get a timely response (for example, if no Honeycomb employees are currently online) then please put your personal safety and well-being first, and consider logging out and/or contacting us by email at community-support@honeycomb.io.
 
-If you see someone who is making an extra effort to ensure our community is welcoming, friendly, and encourages all participants to contribute to the fullest extent, we want to know.
+This code of conduct applies to our community’s spaces, but if you are being harassed by a member of our community outside our spaces, we still want to know about it. We will take all good-faith reports of harassment by our members seriously. This includes harassment outside our spaces and harassment that took place at any point in time. The Honeycomb team reserves the right to exclude people from the Pollinators community based on their past behavior, including behavior outside of our spaces and behavior towards people who are not in this community.
 
-## 3. Expected Behavior
+In order to protect admins from abuse and burnout, we reserve the right to reject any report we believe to have been made in bad faith. Reports intended to silence legitimate criticism may be deleted or ignored without response.
 
-The following behaviors are expected and requested of all community members:
+How we will enforce these rules
+Every code of conduct violation report will be treated with seriousness and care. If a member’s immediate safety and security is threatened, an individual Honeycomb employee may take any action that they deem appropriate, up to and including temporarily banning the offender from the Pollinators community. In less urgent situations, at least two Honeycomb employees will discuss the offense and mutually arrive at a suitable response, which will be shared with the offender privately. Whatever the resolution that they decide upon, the decision of the Honeycomb employees involved in a violation case will be considered final.
 
- * Participate in an authentic and active way. In doing so, you contribute to the health and longevity of this community.
- * Exercise consideration and respect in your speech and actions.
- * Attempt collaboration before conflict.
- * Refrain from demeaning, discriminatory, or harassing behavior and speech.
- * Be mindful of your surroundings and of your fellow participants. Alert community leaders if you notice a dangerous situation, someone in distress, or violations of this Code of Conduct, even if they seem inconsequential.
- * Remember that community event venues may be shared with members of the public; please be respectful to all patrons of these locations.
+We will respect confidentiality requests for the purpose of protecting victims of abuse. At our discretion, we may publicly name a person about whom we’ve received harassment complaints, or privately warn third parties about them, if we believe that doing so will increase the safety of our members or the general public. We will not name harassment victims without their affirmative consent.
 
-## 4. Unacceptable Behavior
+Consequences
+Participants asked to stop any harassing behavior are expected to comply immediately. If a participant engages in harassing behavior, we may take any action they deem appropriate, up to and including expulsion from the Pollinators community and identification of the participant as a harasser to other members. At the discretion of the Honeycomb team or by request, one or more of the parties involved may request to discuss the violation and how to avoid similar situations in the future.
 
-The following behaviors are considered harassment and are unacceptable within our community:
+Acknowledgements
+This Code of Conduct is adapted from the Community Covenant ( http://community-covenant.net ), version 1.0, available at http://community-covenant.net/version/1/0/ . The Community Covenant is an open source effort and is built on codes of conduct that came before it, including the Contributor Covenant (http://contributor-covenant.org/) and the LGBTQ in Tech community code of conduct ( http://lgbtq.technology/coc.html ).
 
- * Violence, threats of violence or violent language directed against another person.
- * Sexist, racist, homophobic, transphobic, ableist or otherwise discriminatory jokes and language.
- * Posting or displaying sexually explicit or violent material.
- * Posting or threatening to post other people's personally identifying information ("doxing").
- * Personal insults, particularly those related to gender, sexual orientation, race, religion, or disability.
- * Inappropriate photography or recording.
- * Inappropriate physical contact. You should have someone's consent before touching them.
- * Unwelcome sexual attention. This includes, sexualized comments or jokes; inappropriate touching, groping, and unwelcomed sexual advances.
- * Deliberate intimidation, stalking or following (online or in person).
- * Advocating for, or encouraging, any of the above behavior.
- * Sustained disruption of community events, including talks and presentations.
-
-## 5. Weapons Policy
-
-No weapons will be allowed at equable-burn events, community spaces, or in other spaces covered by the scope of this Code of Conduct. Weapons include but are not limited to guns, explosives (including fireworks), and large knives such as those used for hunting or display, as well as any other item used for the purpose of causing injury or harm to others. Anyone seen in possession of one of these items will be asked to leave immediately, and will only be allowed to return without the weapon. Community members are further expected to comply with all state and local laws on this matter.
-
-## 6. Consequences of Unacceptable Behavior
-
-Unacceptable behavior from any community member, including sponsors and those with decision-making authority, will not be tolerated.
-
-Anyone asked to stop unacceptable behavior is expected to comply immediately.
-
-If a community member engages in unacceptable behavior, the community organizers may take any action they deem appropriate, up to and including a temporary ban or permanent expulsion from the community without warning (and without refund in the case of a paid event).
-
-## 7. Reporting Guidelines
-
-If you are subject to or witness unacceptable behavior, or have any other concerns, please notify a community organizer as soon as possible. [CONTACT_INFO_HERE].
-
-[LINK_TO_REPORTING_GUIDELINES]
-
-Additionally, community organizers are available to help community members engage with local law enforcement or to otherwise help those experiencing unacceptable behavior feel safe. In the context of in-person events, organizers will also provide escorts as desired by the person experiencing distress.
-
-## 8. Addressing Grievances
-
-If you feel you have been falsely or unfairly accused of violating this Code of Conduct, you should notify elizabeth@ctyalcove.org with a concise description of your grievance. Your grievance will be handled in accordance with our existing governing policies. [LINK_TO_POLICY]
-
-[NOTE: Every organization's governing policies should dictate how you handle warnings and expulsions of community members. It is strongly recommended that you mention those policies here or in Section 7 and that you include a mechanism for addressing grievances.]
-
-## 9. Scope
-
-We expect all community participants (contributors, paid or otherwise; sponsors; and other guests) to abide by this Code of Conduct in all community venues--online and in-person--as well as in all one-on-one communications pertaining to community business.
-
-This code of conduct and its related procedures also applies to unacceptable behavior occurring outside the scope of community activities when such behavior has the potential to adversely affect the safety and well-being of community members.
-
-## 10. Contact info
-
-[YOUR_CONTACT_INFO_HERE -- this should be a single person or a small team who can respond to issues directly]
-
-## 11. License and attribution
-
-The Citizen Code of Conduct is distributed by [Stumptown Syndicate](http://stumptownsyndicate.org) under a [Creative Commons Attribution-ShareAlike license](http://creativecommons.org/licenses/by-sa/3.0/). 
-
-Portions of text derived from the [Django Code of Conduct](https://www.djangoproject.com/conduct/) and the [Geek Feminism Anti-Harassment Policy](http://geekfeminism.wikia.com/wiki/Conference_anti-harassment/Policy).
-
-_Revision 2.3. Posted 6 March 2017._
-
-_Revision 2.2. Posted 4 February 2016._
-
-_Revision 2.1. Posted 23 June 2014._
-
-_Revision 2.0, adopted by the [Stumptown Syndicate](http://stumptownsyndicate.org) board on 10 January 2013. Posted 17 March 2013._
+License
+Community Covenant by Coraline Ada Ehmke is licensed under a Creative Commons Attribution 4.0 International License (http://creativecommons.org/licenses/by/4.0/). Based on a work at http://community-covenant.net/.
