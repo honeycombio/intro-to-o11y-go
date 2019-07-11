@@ -10,4 +10,5 @@ if [ ! -d go ]; then
   rm /tmp/go1.12.7.linux-amd64.tar.gz
 fi
 cd ~/src
+~/go/bin/go build -buildmode=plugin -o ~/stderr.so stderr.go
 OPENTELEMETRY_LIB=~/stderr.so ~/go/bin/go run main.go

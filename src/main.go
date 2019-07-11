@@ -1,6 +1,7 @@
 package main
 
 import (
+  "context"
   "net/http"
   "fmt"
   "log"
@@ -25,6 +26,12 @@ var (
 		)
 )
 
+func dbHandler(ctx context.Context) {
+  // ctx, span := tracer.StartSpan(ctx, "span name")
+  // defer span.Finish()
+  
+}
+
 func rootHandler(w http.ResponseWriter, req *http.Request) {
   attrs, tags, spanCtx := httptrace.Extract(req)
 
@@ -39,13 +46,13 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
   defer span.Finish()
   span.AddEvent(ctx, event.WithString("handling this..."))
 
-  fmt.Fprintf(w, "Go look in the stderr logs for spans!")
+  fmt.Fprintf(w, "Click [Tools] > [Logs] to see spans!")
 }
 
 
 func main() {
   http.HandleFunc("/", rootHandler)
-  os.Stderr.WriteString("Initializing...")
+  os.Stderr.WriteString("Initializing the server...\n")
 
   err := http.ListenAndServe(":3000", nil)
   if err != nil {
