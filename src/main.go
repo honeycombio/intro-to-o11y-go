@@ -4,6 +4,7 @@ import (
   "net/http"
   "fmt"
   "log"
+  "os"
 
   "github.com/open-telemetry/opentelemetry-go/api/core"
 	"github.com/open-telemetry/opentelemetry-go/api/tag"
@@ -24,7 +25,7 @@ var (
 		)
 )
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
+func rootHandler(w http.ResponseWriter, req *http.Request) {
   attrs, tags, spanCtx := httptrace.Extract(req)
 
   req = req.WithContext(tag.WithMap(req.Context(), tag.NewMap(core.KeyValue{}, tags, core.Mutator{}, nil)))
@@ -38,12 +39,13 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
   defer span.Finish()
   span.AddEvent(ctx, event.WithString("handling this..."))
 
-  fmt.Fprintf(w, "Ohai world!")
+  fmt.Fprintf(w, "Go look in the stderr logs for spans!")
 }
 
 
 func main() {
   http.HandleFunc("/", rootHandler)
+  os.Stderr.WriteString("Initializing...")
 
   err := http.ListenAndServe(":3000", nil)
   if err != nil {
