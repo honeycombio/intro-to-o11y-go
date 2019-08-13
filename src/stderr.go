@@ -15,8 +15,8 @@
 package main
 
 import (
-	"github.com/open-telemetry/opentelemetry-go/exporter/observer"
-	"github.com/open-telemetry/opentelemetry-go/exporter/stderr"
+	"go.opentelemetry.io/exporter/observer"
+	"go.opentelemetry.io/exporter/stderr"
 )
 
 var (

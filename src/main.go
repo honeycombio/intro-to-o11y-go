@@ -9,15 +9,15 @@ import (
   "syscall"
   "time"
 
-  "github.com/open-telemetry/opentelemetry-go/api/core"
- 	"github.com/open-telemetry/opentelemetry-go/api/metric"
-	"github.com/open-telemetry/opentelemetry-go/api/tag"
-	apitrace "github.com/open-telemetry/opentelemetry-go/api/trace"
-	"github.com/open-telemetry/opentelemetry-go/plugin/httptrace"
+  "go.opentelemetry.io/api/core"
+ 	"go.opentelemetry.io/api/metric"
+	"go.opentelemetry.io/api/tag"
+	apitrace "go.opentelemetry.io/api/trace"
+	"go.opentelemetry.io/plugin/httptrace"
 
-	_ "github.com/open-telemetry/opentelemetry-go/exporter/loader"
-	"github.com/open-telemetry/opentelemetry-go/sdk/event"
-	"github.com/open-telemetry/opentelemetry-go/sdk/trace"
+	_ "go.opentelemetry.io/exporter/loader"
+	"go.opentelemetry.io/sdk/event"
+	"go.opentelemetry.io/sdk/trace"
 )
 
 var (
