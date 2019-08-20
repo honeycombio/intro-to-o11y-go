@@ -15,9 +15,10 @@ import (
 	apitrace "go.opentelemetry.io/api/trace"
 	"go.opentelemetry.io/plugin/httptrace"
 
-	_ "go.opentelemetry.io/exporter/loader"
-	"go.opentelemetry.io/sdk/event"
-	"go.opentelemetry.io/sdk/trace"
+  _ "go.opentelemetry.io/experimental/streaming/exporter/stderr/install"
+	_ "go.opentelemetry.io/experimental/streaming/exporter/loader"
+	"go.opentelemetry.io/api/event"
+	"go.opentelemetry.io/api/trace"
 )
 
 var (

@@ -15,5 +15,4 @@ mkdir -p /tmp/pkg
 if [ ! -L pkg ]; then
   ln -s /tmp/pkg .
 fi
-/tmp/go/bin/go build -buildmode=plugin -o ~/stderr.so stderr.go
-OPENTELEMETRY_LIB=~/stderr.so /tmp/go/bin/go run main.go
+/tmp/go/bin/go run main.go
