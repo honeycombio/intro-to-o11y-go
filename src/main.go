@@ -9,8 +9,6 @@ import (
   "syscall"
   "time"
 
-  "go.opentelemetry.io/api/core"
-	"go.opentelemetry.io/api/event"
 	"go.opentelemetry.io/api/key"
  	"go.opentelemetry.io/api/metric"
  	"go.opentelemetry.io/api/registry"
@@ -63,7 +61,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
   )
   defer span.Finish()
 
-  span.AddEvent(ctx, event.WithString("annotation within span"))
+  span.Event(ctx, "annotation within span")
   _ = dbHandler(ctx, "foo")
 
   fmt.Fprintf(w, "Click [Tools] > [Logs] to see spans!")
