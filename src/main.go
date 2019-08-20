@@ -10,26 +10,26 @@ import (
   "time"
 
   "go.opentelemetry.io/api/core"
+	"go.opentelemetry.io/api/event"
+	"go.opentelemetry.io/api/key"
  	"go.opentelemetry.io/api/metric"
+ 	"go.opentelemetry.io/api/registry"
 	"go.opentelemetry.io/api/tag"
-	apitrace "go.opentelemetry.io/api/trace"
+	"go.opentelemetry.io/api/trace"
 	"go.opentelemetry.io/plugin/httptrace"
 
   _ "go.opentelemetry.io/experimental/streaming/exporter/stderr/install"
-	_ "go.opentelemetry.io/experimental/streaming/exporter/loader"
-	"go.opentelemetry.io/api/event"
-	"go.opentelemetry.io/api/trace"
 )
 
 var (
-	tracer = trace.Register().
+	tracer = trace.GlobalTracer().
 		WithService("server").
 		WithComponent("main").
 		WithResources(
-			tag.New("whatevs").String("nooooo"),
+			key.New("whatevs").String("nooooo"),
 		)
-  appKey = tag.New("honeycomb.io/glitch/app", tag.WithDescription("The Glitch app name."))
-  containerKey = tag.New("honeycomb.io/glitch/container_id", tag.WithDescription("The Glitch container id."))
+  appKey = key.New("honeycomb.io/glitch/app", registry.WithDescription("The Glitch app name."))
+  containerKey = key.New("honeycomb.io/glitch/container_id", registry.WithDescription("The Glitch container id."))
 	diskUsedMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
@@ -51,13 +51,15 @@ func dbHandler(ctx context.Context, color string) int {
 func rootHandler(w http.ResponseWriter, req *http.Request) {
   attrs, tags, spanCtx := httptrace.Extract(req)
 
-  req = req.WithContext(tag.WithMap(req.Context(), tag.NewMap(core.KeyValue{}, tags, core.Mutator{}, nil)))
+  req = req.WithContext(tag.WithMap(req.Context(), tag.NewMap(tag.MapUpdate{
+		MultiKV: tags,
+	})))
 
   ctx, span := tracer.Start(
     req.Context(),
     "root",
-    apitrace.WithAttributes(attrs...),
-    apitrace.ChildOf(spanCtx),
+    trace.WithAttributes(attrs...),
+    trace.ChildOf(spanCtx),
   )
   defer span.Finish()
 
