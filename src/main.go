@@ -62,7 +62,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
   )
   defer span.Finish()
 
-  // span.Event(ctx, "annotation within span")
+  span.Event(ctx, "annotation within span")
   _ = dbHandler(ctx, "foo")
 
   fmt.Fprintf(w, "Click [Tools] > [Logs] to see spans!")
