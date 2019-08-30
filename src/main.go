@@ -47,6 +47,10 @@ func dbHandler(ctx context.Context, color string) int {
   return 0
 }
 
+func restartHandler(w http.ResponseWriter, req *http.Request) {
+  os.Exit(0)
+}
+
 func rootHandler(w http.ResponseWriter, req *http.Request) {
   attrs, tags, spanCtx := httptrace.Extract(req)
 
@@ -88,6 +92,7 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64Gauge) {
 
 func main() {
   http.HandleFunc("/", rootHandler)
+  http.HandleFunc("/quitquitquit", restartHandler)
   os.Stderr.WriteString("Initializing the server...\n")
 
   ctx := tag.NewContext(context.Background(),
