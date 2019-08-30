@@ -36,6 +36,7 @@ var (
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk quota available."),
 	)
+  meter = metric.GlobalMeter()
 )
 
 func dbHandler(ctx context.Context, color string) int {
@@ -61,7 +62,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
   )
   defer span.Finish()
 
-  span.Event(ctx, "annotation within span")
+  // span.Event(ctx, "annotation within span")
   _ = dbHandler(ctx, "foo")
 
   fmt.Fprintf(w, "Click [Tools] > [Logs] to see spans!")
@@ -71,7 +72,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
   // call ourselves minus one for some recursion and complex spans.
 }
 
-func updateDiskMetrics(ctx context.Context, used, quota *metric.Float64Entry) {
+func updateDiskMetrics(ctx context.Context, used, quota metric.Float64Gauge) {
   for {
     var stat syscall.Statfs_t
     wd, _ := os.Getwd()
@@ -94,16 +95,10 @@ func main() {
     tag.Insert(containerKey.String(os.Getenv("HOSTNAME"))),
 	)
 
-	used := diskUsedMetric.Gauge(
-		appKey.Value(ctx),
-		containerKey.Value(ctx),
-	)
-  quota := diskQuotaMetric.Gauge(
-		appKey.Value(ctx),
-		containerKey.Value(ctx),
-	)
+  used := meter.GetFloat64Gauge(ctx, diskUsedMetric)
+  quota := meter.GetFloat64Gauge(ctx, diskQuotaMetric)
 
-  go updateDiskMetrics(ctx, &used, &quota)
+  go updateDiskMetrics(ctx, used, quota)
 
   err := http.ListenAndServe(":3000", nil)
   if err != nil {
