@@ -113,7 +113,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		var mtx sync.Mutex
 		var wg sync.WaitGroup
 		client := http.DefaultClient
-		for offset := 0; offset < 2; offset++ {
+		for offset := 1; offset < 3; offset++ {
 			wg.Add(1)
 			go func(n int) {
 				err := tracer.WithSpan(ctx, "fibClient", func(ctx context.Context) error {
