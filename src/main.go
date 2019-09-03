@@ -66,14 +66,34 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
   )
   defer span.Finish()
 
-  span.Event(ctx, "annotation within span")
+  span.AddEvent(ctx, "annotation within span")
   _ = dbHandler(ctx, "foo")
 
   fmt.Fprintf(w, "Click [Tools] > [Logs] to see spans!")
 }
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
-  // call ourselves minus one for some recursion and complex spans.
+  attrs, tags, spanCtx := httptrace.Extract(req)
+  req = req.WithContext(tag.WithMap(req.Context(), tag.NewMap(tag.MapUpdate{
+		MultiKV: tags,
+	})))
+  ctx, span := tracer.Start(
+    req.Context(),
+    "fibonacci",
+    trace.WithAttributes(attrs...),
+    trace.ChildOf(spanCtx),
+  )
+  defer span.Finish()
+
+  i, err := strconv.Atoi(req.URL.Query())
+  ret := 0
+  if i < 2 {
+    ret = 1
+  } else {
+    // Call /fib?i=(n-1) and /fib?i=(n-2) and add them together.
+    ret = a + b
+  }
+  fmt.Fprintf(w, "%d", ret)
 }
 
 func updateDiskMetrics(ctx context.Context, used, quota metric.Float64Gauge) {
@@ -92,6 +112,7 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64Gauge) {
 
 func main() {
   http.HandleFunc("/", rootHandler)
+  http.HandleFunc("/fib", fibHandler)
   http.HandleFunc("/quitquitquit", restartHandler)
   os.Stderr.WriteString("Initializing the server...\n")
 
