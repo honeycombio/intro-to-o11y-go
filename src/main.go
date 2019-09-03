@@ -168,9 +168,11 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64Gauge) {
 }
 
 func main() {
-	http.HandleFunc("/", rootHandler)
-	http.HandleFunc("/fib", fibHandler)
-	http.HandleFunc("/quitquitquit", restartHandler)
+	mux := http.NewServeMux()
+	mux.Handle("/", http.HandlerFunc(rootHandler))
+	mux.Handle("/favicon.ico", http.NotFoundHandler())
+	mux.Handle("/fib", http.HandlerFunc(fibHandler))
+	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
 	os.Stderr.WriteString("Initializing the server...\n")
 
 	ctx := tag.NewContext(context.Background(),
@@ -183,7 +185,7 @@ func main() {
 
 	go updateDiskMetrics(ctx, used, quota)
 
-	err := http.ListenAndServe(":3000", nil)
+	err := http.ListenAndServe(":3000", mux)
 	if err != nil {
 		log.Fatalf("Could not start web server: %s", err)
 	}
