@@ -9,6 +9,8 @@ import (
   "syscall"
   "time"
 
+  "google.golang.org/grpc/codes"
+  
 	"go.opentelemetry.io/api/key"
  	"go.opentelemetry.io/api/metric"
  	"go.opentelemetry.io/api/registry"
@@ -85,13 +87,29 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
   )
   defer span.Finish()
 
-  i, err := strconv.Atoi(req.URL.Query())
+  i, err := strconv.Atoi(req.URL.Query()["i"])
+  if err != nil {
+    fmt.Fprintf(w, "Couldn't parse index '%s'.", req.URL.Query()["i"])
+    w.WriteHeader(503)
+    // This shouldn't be necessary in a finished OTel http auto-instrument.
+    span.SetStatus(codes.InvalidArgument)
+    return
+  }
   ret := 0
+  
   if i < 2 {
     ret = 1
   } else {
     // Call /fib?i=(n-1) and /fib?i=(n-2) and add them together.
-    ret = a + b
+    var mtx sync.Mutex
+    for offset := 0; offset < 2; offset++ {
+      err := tracer.WithSpan(ctx, "fibClient", go func(n) {
+        req, _ := http.NewRequest("GET", "http://localhost:3000/hello", nil)
+        mtx.Lock()
+        defer mtx.Unlock()
+        ret += resp
+      }(i-offset)
+    }
   }
   fmt.Fprintf(w, "%d", ret)
 }
