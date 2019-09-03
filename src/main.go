@@ -105,7 +105,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	ret := 0
-  failed := false
+	failed := false
 
 	if i < 2 {
 		ret = 1
@@ -142,8 +142,10 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					return err
 				})
 				if err != nil {
-          if !failed {}
-					w.WriteHeader(503)
+					if !failed {
+						w.WriteHeader(503)
+						failed = true
+					}
 					fmt.Fprintf(w, "Failed to call child index '%s'.\n", n)
 					span.SetStatus(codes.Internal)
 				}
