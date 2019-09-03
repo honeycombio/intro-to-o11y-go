@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"sync"
 	"syscall"
 	"time"
 
@@ -87,7 +90,13 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	)
 	defer span.Finish()
 
-	i, err := strconv.Atoi(req.URL.Query()["i"])
+	var err error
+	var i int
+	if len(req.URL.Query()["i"]) != 1 {
+		err = fmt.Errorf("Wrong number of arguments.")
+	} else {
+		i, err = strconv.Atoi(req.URL.Query()["i"][0])
+	}
 	if err != nil {
 		fmt.Fprintf(w, "Couldn't parse index '%s'.", req.URL.Query()["i"])
 		w.WriteHeader(503)
@@ -103,9 +112,10 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		// Call /fib?i=(n-1) and /fib?i=(n-2) and add them together.
 		var mtx sync.Mutex
 		var wg sync.WaitGroup
+		client := http.DefaultClient
 		for offset := 0; offset < 2; offset++ {
 			wg.Add(1)
-			go func(n) {
+			go func(n int) {
 				err := tracer.WithSpan(ctx, "fibClient", func(ctx context.Context) error {
 					url := fmt.Sprintf("http://localhost:3000/fib?i=%d", n)
 					req, _ := http.NewRequest("GET", url, nil)
@@ -115,12 +125,12 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					if err != nil {
 						return err
 					}
-					body, err = ioutil.ReadAll(res.Body)
+					body, err := ioutil.ReadAll(res.Body)
 					res.Body.Close()
 					if err != nil {
 						return err
 					}
-					resp, err := strconv.Atoi(body)
+					resp, err := strconv.Atoi(string(body))
 					if err != nil {
 						return err
 					}
@@ -138,8 +148,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 				wg.Done()
 			}(i - offset)
 		}
+		wg.Wait()
 	}
-	wg.Wait()
 	fmt.Fprintf(w, "%d", ret)
 }
 
