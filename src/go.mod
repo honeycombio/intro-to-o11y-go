@@ -2,6 +2,7 @@ module /app/src
 
 require (
 	github.com/google/go-cmp v0.3.1 // indirect
+	github.com/honeycombio/opentelemetry-exporter-go v0.0.0-20190916155518-ff2962f0f0b8 // indirect
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
 	go.opentelemetry.io v0.0.0-20190912234058-5df3c071e8c9

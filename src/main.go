@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+  "github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"google.golang.org/grpc/codes"
 
 	"go.opentelemetry.io/api/key"
@@ -31,7 +32,15 @@ var (
 		WithResources(
 			key.New("whatevs").String("nooooo"),
 		)
-	appKey         = key.New("honeycomb.io/glitch/app", registry.WithDescription("The Glitch app name."))
+
+  apikey, _ := os.LookupEnv("HNY_KEY")
+  dataset, _ := os.LookupEnv("HNY_DATASET")
+  exporter := honeycomb.NewExporter(apikey, dataset)
+	exporter.ServiceName = "opentelemetry-workshop"
+	defer exporter.Close()
+	trace.RegisterExporter(exporter)
+
+  appKey         = key.New("honeycomb.io/glitch/app", registry.WithDescription("The Glitch app name."))
 	containerKey   = key.New("honeycomb.io/glitch/container_id", registry.WithDescription("The Glitch container id."))
 	diskUsedMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
 		metric.WithKeys(appKey, containerKey),
