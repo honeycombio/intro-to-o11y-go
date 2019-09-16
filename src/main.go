@@ -33,13 +33,6 @@ var (
 			key.New("whatevs").String("nooooo"),
 		)
 
-  apikey, _ := os.LookupEnv("HNY_KEY")
-  dataset, _ := os.LookupEnv("HNY_DATASET")
-  exporter := honeycomb.NewExporter(apikey, dataset)
-	exporter.ServiceName = "opentelemetry-workshop"
-	defer exporter.Close()
-	trace.RegisterExporter(exporter)
-
   appKey         = key.New("honeycomb.io/glitch/app", registry.WithDescription("The Glitch app name."))
 	containerKey   = key.New("honeycomb.io/glitch/container_id", registry.WithDescription("The Glitch container id."))
 	diskUsedMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
@@ -181,6 +174,13 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64Gauge) {
 }
 
 func main() {
+  apikey, _ := os.LookupEnv("HNY_KEY")
+  dataset, _ := os.LookupEnv("HNY_DATASET")
+  exporter := honeycomb.NewExporter(apikey, dataset)
+	exporter.ServiceName = "opentelemetry-workshop"
+	defer exporter.Close()
+	// trace.RegisterExporter(exporter)
+
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(rootHandler))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
