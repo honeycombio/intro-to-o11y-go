@@ -22,16 +22,11 @@ import (
 	"go.opentelemetry.io/api/trace"
 	"go.opentelemetry.io/plugin/httptrace"
 
-	_ "go.opentelemetry.io/experimental/streaming/exporter/stderr/install"
+	// _ "go.opentelemetry.io/experimental/streaming/exporter/stderr/install"
 )
 
 var (
-	tracer = trace.GlobalTracer().
-		WithService("server").
-		WithComponent("main").
-		WithResources(
-			key.New("whatevs").String("nooooo"),
-		)
+	tracer trace.Tracer
 
   appKey         = key.New("honeycomb.io/glitch/app", registry.WithDescription("The Glitch app name."))
 	containerKey   = key.New("honeycomb.io/glitch/container_id", registry.WithDescription("The Glitch container id."))
@@ -179,9 +174,16 @@ func main() {
   exporter := honeycomb.NewExporter(apikey, dataset)
 	exporter.ServiceName = "opentelemetry-workshop"
 	defer exporter.Close()
-	// trace.RegisterExporter(exporter)
+  exporter.Register()
 
-	mux := http.NewServeMux()
+  tracer = trace.GlobalTracer().
+		WithService("server").
+		WithComponent("main").
+		WithResources(
+			key.New("whatevs").String("nooooo"),
+		)
+
+  mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(rootHandler))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", http.HandlerFunc(fibHandler))
