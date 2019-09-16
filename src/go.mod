@@ -22,7 +22,8 @@ require (
 	github.com/gostaticanalysis/analysisutil v0.0.3 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.11.1 // indirect
-	github.com/honeycombio/opentelemetry-exporter-go v0.0.0-20190916173213-bdafc5beed15 // indirect
+	github.com/honeycombio/libhoney-go v1.12.1 // indirect
+	github.com/honeycombio/opentelemetry-exporter-go v0.0.0-20190916195257-6bfe67504722 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20190803045625-94edacc10f9b // indirect
