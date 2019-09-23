@@ -172,7 +172,7 @@ func main() {
   apikey, _ := os.LookupEnv("HNY_KEY")
   dataset, _ := os.LookupEnv("HNY_DATASET")
   exporter := honeycomb.NewExporter(apikey, dataset)
-	exporter.ServiceName = "opentelemetry-workshop"
+  exporter.ServiceName, _ = os.LookupEnv("PROJECT_NAME")
 	defer exporter.Close()
   exporter.Register()
 
