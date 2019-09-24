@@ -57,6 +57,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 	req = req.WithContext(tag.WithMap(req.Context(), tag.NewMap(tag.MapUpdate{
 		MultiKV: tags,
 	})))
+  fmt.Println(spanCtx)
 
 	ctx, span := tracer.Start(
 		req.Context(),
