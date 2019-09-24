@@ -169,12 +169,12 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64Gauge) {
 func main() {
 	apikey, _ := os.LookupEnv("HNY_KEY")
 	dataset, _ := os.LookupEnv("HNY_DATASET")
-	serviceName, _ = os.LookupEnv("PROJECT_NAME")
+  serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
 	exporter := honeycomb.NewExporter(honeycomb.Config{
 		ApiKey:      apikey,
 		Dataset:     dataset,
-		Debug:       true,
+		Debug:       false,
 		ServiceName: serviceName,
 	})
 	defer exporter.Close()
