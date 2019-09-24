@@ -12,24 +12,22 @@ import (
 	"syscall"
 	"time"
 
-  "github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
+	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"google.golang.org/grpc/codes"
 
 	"go.opentelemetry.io/api/key"
 	"go.opentelemetry.io/api/metric"
-	"go.opentelemetry.io/api/registry"
 	"go.opentelemetry.io/api/tag"
 	"go.opentelemetry.io/api/trace"
 	"go.opentelemetry.io/plugin/httptrace"
-
 	// _ "go.opentelemetry.io/experimental/streaming/exporter/stderr/install"
 )
 
 var (
 	tracer trace.Tracer
 
-  appKey         = key.New("honeycomb.io/glitch/app", registry.WithDescription("The Glitch app name."))
-	containerKey   = key.New("honeycomb.io/glitch/container_id", registry.WithDescription("The Glitch container id."))
+	appKey         = key.New("honeycomb.io/glitch/app")          // The Glitch app name.
+	containerKey   = key.New("honeycomb.io/glitch/container_id") // The Glitch container id.
 	diskUsedMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
@@ -54,7 +52,7 @@ func restartHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
-	attrs, tags, spanCtx := httptrace.Extract(req)
+	attrs, tags, spanCtx := httptrace.Extract(req.Context(), req)
 
 	req = req.WithContext(tag.WithMap(req.Context(), tag.NewMap(tag.MapUpdate{
 		MultiKV: tags,
@@ -75,7 +73,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
-	attrs, tags, spanCtx := httptrace.Extract(req)
+	attrs, tags, spanCtx := httptrace.Extract(req.Context(), req)
 	req = req.WithContext(tag.WithMap(req.Context(), tag.NewMap(tag.MapUpdate{
 		MultiKV: tags,
 	})))
@@ -117,8 +115,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 				err := tracer.WithSpan(ctx, "fibClient", func(ctx context.Context) error {
 					url := fmt.Sprintf("http://localhost:3000/fib?i=%d", n)
 					req, _ := http.NewRequest("GET", url, nil)
-					ctx, req, inj := httptrace.W3C(ctx, req)
-					trace.Inject(ctx, inj)
+					ctx, req = httptrace.W3C(ctx, req)
+					httptrace.Inject(ctx, req)
 					res, err := client.Do(req)
 					if err != nil {
 						return err
@@ -169,21 +167,27 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64Gauge) {
 }
 
 func main() {
-  apikey, _ := os.LookupEnv("HNY_KEY")
-  dataset, _ := os.LookupEnv("HNY_DATASET")
-  exporter := honeycomb.NewExporter(apikey, dataset)
-  exporter.ServiceName, _ = os.LookupEnv("PROJECT_NAME")
-	defer exporter.Close()
-  exporter.Register()
+	apikey, _ := os.LookupEnv("HNY_KEY")
+	dataset, _ := os.LookupEnv("HNY_DATASET")
+	serviceName, _ = os.LookupEnv("PROJECT_NAME")
 
-  tracer = trace.GlobalTracer().
+	exporter := honeycomb.NewExporter(honeycomb.Config{
+		ApiKey:      apikey,
+		Dataset:     dataset,
+		Debug:       true,
+		ServiceName: serviceName,
+	})
+	defer exporter.Close()
+	exporter.Register()
+
+	tracer = trace.GlobalTracer().
 		WithService("server").
 		WithComponent("main").
 		WithResources(
 			key.New("whatevs").String("nooooo"),
 		)
 
-  mux := http.NewServeMux()
+	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(rootHandler))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", http.HandlerFunc(fibHandler))
