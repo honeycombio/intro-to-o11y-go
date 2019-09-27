@@ -41,7 +41,7 @@ var (
 
 func dbHandler(ctx context.Context, color string) int {
 	ctx, span := tracer.Start(ctx, "database")
-	defer span.End()
+	defer span.Finish()
 
 	// Pretend we talked to a database here.
 	return 0
@@ -64,7 +64,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 		trace.WithAttributes(attrs...),
 		trace.ChildOf(spanCtx),
 	)
-	defer span.End()
+	defer span.Finish()
 
 	span.AddEvent(ctx, "annotation within span")
 	_ = dbHandler(ctx, "foo")
@@ -83,7 +83,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		trace.WithAttributes(attrs...),
 		trace.ChildOf(spanCtx),
 	)
-	defer span.End()
+	defer span.Finish()
 
 	var err error
 	var i int
