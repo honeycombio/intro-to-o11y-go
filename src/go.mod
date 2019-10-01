@@ -11,7 +11,7 @@ require (
 	github.com/golangci/revgrep v0.0.0-20180812185044-276a5c0a1039 // indirect
 	github.com/gostaticanalysis/analysisutil v0.0.3 // indirect
 	github.com/honeycombio/libhoney-go v1.12.1 // indirect
-	github.com/honeycombio/opentelemetry-exporter-go v0.0.0-20191001152826-e9d3c6aa3bfe // indirect
+	github.com/honeycombio/opentelemetry-exporter-go v0.0.1 // indirect
 	github.com/klauspost/compress v1.8.4 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
