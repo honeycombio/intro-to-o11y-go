@@ -37,10 +37,6 @@ var (
 		metric.WithDescription("Amount of disk quota available."),
 	)
 	meter = metric.GlobalMeter()
-  oneMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/app",
-		metric.WithKeys(fooKey, barKey, appKey),
-		metric.WithDescription("A gauge set to 1.0"),
-	)
 )
 
 func dbHandler(ctx context.Context, color string) int {
@@ -156,7 +152,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%d", ret)
 }
 
-func updateDiskMetrics(ctx context.Context, used, quota metric.Float64Gauge) {
+func updateDiskMetrics(ctx context.Context, used, quota metric.Float64GaugeHandle) {
 	for {
 		var stat syscall.Statfs_t
 		wd, _ := os.Getwd()
@@ -197,11 +193,9 @@ func main() {
 	)
   
   commonLabels := meter.DefineLabels(ctx, appKey.Int(10))
-	gauge := oneMetric.GetHandle(commonLabels)
-	measure := measureTwo.GetHandle(commonLabels)
 
-  used := meter.GetFloat64Gauge(ctx, diskUsedMetric, appKey.Int(10))
-	quota := meter.GetFloat64Gauge(ctx, diskQuotaMetric, appKey.Int(10))
+  used := diskUsedMetric.GetHandle(commonLabels)
+	quota := diskQuotaMetric.GetHandle(commonLabels)
 
 	go updateDiskMetrics(ctx, used, quota)
 
