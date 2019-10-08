@@ -40,7 +40,7 @@ var (
 )
 
 func dbHandler(ctx context.Context, color string) int {
-	ctx, span := tracer.Start(ctx, "database")
+	ctx, span := trace.GlobalTracer().Start(ctx, "database")
 	defer span.End()
 
 	// Pretend we talked to a database here.
@@ -58,7 +58,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 		MultiKV: tags,
 	})))
 
-	ctx, span := tracer.Start(
+	ctx, span := trace.GlobalTracer().Start(
 		req.Context(),
 		"root",
 		trace.WithAttributes(attrs...),
@@ -179,13 +179,6 @@ func main() {
 	})
 	defer exporter.Close()
 	exporter.Register()
-
-	tracer = trace.GlobalTracer().
-		WithService("server").
-		WithComponent("main").
-		WithResources(
-			key.New("whatevs").String("nooooo"),
-		)
 
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(rootHandler))
