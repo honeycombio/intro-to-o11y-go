@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
+	"go.opentelemetry.io/exporter/trace/jaeger"
+	sdktrace "go.opentelemetry.io/sdk/trace"
 	"google.golang.org/grpc/codes"
 
 	"go.opentelemetry.io/api/key"
@@ -38,6 +40,59 @@ var (
 	)
 	meter = metric.GlobalMeter()
 )
+
+func main() {
+	apikey, _ := os.LookupEnv("HNY_KEY")
+	dataset, _ := os.LookupEnv("HNY_DATASET")
+	serviceName, _ := os.LookupEnv("PROJECT_NAME")
+
+	exporter := honeycomb.NewExporter(honeycomb.Config{
+		ApiKey:      apikey,
+		Dataset:     dataset,
+		Debug:       false,
+		ServiceName: serviceName,
+	})
+	defer exporter.Close()
+	exporter.Register()
+
+	jExporter, err := jaeger.NewExporter(
+		jaeger.WithCollectorEndpoint("http://35.247.167.151:16686/api/traces"),
+		jaeger.WithProcess(jaeger.Process{
+			ServiceName: serviceName,
+		}),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Wrap exporter with SimpleSpanProcessor and register the processor.
+	ssp := sdktrace.NewSimpleSpanProcessor(jExporter)
+	sdktrace.RegisterSpanProcessor(ssp)
+
+	mux := http.NewServeMux()
+	mux.Handle("/", http.HandlerFunc(rootHandler))
+	mux.Handle("/favicon.ico", http.NotFoundHandler())
+	mux.Handle("/fib", http.HandlerFunc(fibHandler))
+	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
+	os.Stderr.WriteString("Initializing the server...\n")
+
+	ctx := tag.NewContext(context.Background(),
+		tag.Insert(appKey.String(os.Getenv("PROJECT_DOMAIN"))),
+		tag.Insert(containerKey.String(os.Getenv("HOSTNAME"))),
+	)
+
+	commonLabels := meter.DefineLabels(ctx, appKey.Int(10))
+
+	used := diskUsedMetric.GetHandle(commonLabels)
+	quota := diskQuotaMetric.GetHandle(commonLabels)
+
+	go updateDiskMetrics(ctx, used, quota)
+
+	err = http.ListenAndServe(":3000", mux)
+	if err != nil {
+		log.Fatalf("Could not start web server: %s", err)
+	}
+}
 
 func dbHandler(ctx context.Context, color string) int {
 	ctx, span := trace.GlobalTracer().Start(ctx, "database")
@@ -163,44 +218,5 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64GaugeHandl
 		used.Set(ctx, all-free)
 		quota.Set(ctx, all)
 		time.Sleep(time.Minute)
-	}
-}
-
-func main() {
-	apikey, _ := os.LookupEnv("HNY_KEY")
-	dataset, _ := os.LookupEnv("HNY_DATASET")
-  serviceName, _ := os.LookupEnv("PROJECT_NAME")
-
-	exporter := honeycomb.NewExporter(honeycomb.Config{
-		ApiKey:      apikey,
-		Dataset:     dataset,
-		Debug:       false,
-		ServiceName: serviceName,
-	})
-	defer exporter.Close()
-	exporter.Register()
-
-	mux := http.NewServeMux()
-	mux.Handle("/", http.HandlerFunc(rootHandler))
-	mux.Handle("/favicon.ico", http.NotFoundHandler())
-	mux.Handle("/fib", http.HandlerFunc(fibHandler))
-	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
-	os.Stderr.WriteString("Initializing the server...\n")
-
-	ctx := tag.NewContext(context.Background(),
-		tag.Insert(appKey.String(os.Getenv("PROJECT_DOMAIN"))),
-		tag.Insert(containerKey.String(os.Getenv("HOSTNAME"))),
-	)
-  
-  commonLabels := meter.DefineLabels(ctx, appKey.Int(10))
-
-  used := diskUsedMetric.GetHandle(commonLabels)
-	quota := diskQuotaMetric.GetHandle(commonLabels)
-
-	go updateDiskMetrics(ctx, used, quota)
-
-	err := http.ListenAndServe(":3000", mux)
-	if err != nil {
-		log.Fatalf("Could not start web server: %s", err)
 	}
 }
