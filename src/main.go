@@ -92,16 +92,8 @@ func main() {
 	}
 }
 
-func dbHandler(ctx context.Context, color string) int {
-	ctx, span := trace.GlobalTracer().Start(ctx, "database")
-	defer span.End()
-
-	// Pretend we talked to a database here.
-	return 0
-}
-
-func restartHandler(w http.ResponseWriter, req *http.Request) {
-	os.Exit(0)
+func trustAwareLinker() {
+  
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
@@ -217,4 +209,16 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64GaugeHandl
 		quota.Set(ctx, all)
 		time.Sleep(time.Minute)
 	}
+}
+
+func dbHandler(ctx context.Context, color string) int {
+	ctx, span := trace.GlobalTracer().Start(ctx, "database")
+	defer span.End()
+
+	// Pretend we talked to a database here.
+	return 0
+}
+
+func restartHandler(w http.ResponseWriter, req *http.Request) {
+	os.Exit(0)
 }
