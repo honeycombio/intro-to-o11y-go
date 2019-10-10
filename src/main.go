@@ -26,8 +26,6 @@ import (
 )
 
 var (
-	tracer trace.Tracer
-
 	appKey         = key.New("honeycomb.io/glitch/app")          // The Glitch app name.
 	containerKey   = key.New("honeycomb.io/glitch/container_id") // The Glitch container id.
 	diskUsedMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
@@ -132,7 +130,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	req = req.WithContext(tag.WithMap(req.Context(), tag.NewMap(tag.MapUpdate{
 		MultiKV: tags,
 	})))
-	ctx, span := tracer.Start(
+	ctx, span := trace.GlobalTracer().Start(
 		req.Context(),
 		"fibonacci",
 		trace.WithAttributes(attrs...),
@@ -167,7 +165,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		for offset := 1; offset < 3; offset++ {
 			wg.Add(1)
 			go func(n int) {
-				err := tracer.WithSpan(ctx, "fibClient", func(ctx context.Context) error {
+				err := trace.GlobalTracer().WithSpan(ctx, "fibClient", func(ctx context.Context) error {
 					url := fmt.Sprintf("http://localhost:3000/fib?i=%d", n)
 					req, _ := http.NewRequest("GET", url, nil)
 					ctx, req = httptrace.W3C(ctx, req)
