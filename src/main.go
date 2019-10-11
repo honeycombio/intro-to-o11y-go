@@ -77,6 +77,7 @@ func main() {
 	mux := http.NewServeMux()
   mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler), "root"))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
+  // TODO(lizf): Pass WithPublicEndpoint() for /fib and no WithPublicEndpoint() for /fibinternal
   mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
 	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
 	os.Stderr.WriteString("Initializing the server...\n")
@@ -97,16 +98,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not start web server: %s", err)
 	}
-}
-
-func trustAwareLinker(spanCtx core.SpanContext, req *http.Request) trace.SpanOption {
-  // Use trace.ChildOf() if we trust the source, and trace.FollowsFrom() if not.
-  ip, _, err := net.SplitHostPort(req.RemoteAddr)
-  userIP := net.ParseIP(ip)
-  if err == nil && userIP.IsLoopback() {
-    return trace.ChildOf(spanCtx)
-  }
-  return trace.FollowsFrom(spanCtx)
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
