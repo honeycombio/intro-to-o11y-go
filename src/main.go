@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+  "net"
 	"net/http"
 	"os"
 	"strconv"
@@ -17,7 +18,8 @@ import (
 	sdktrace "go.opentelemetry.io/sdk/trace"
 	"google.golang.org/grpc/codes"
 
-	"go.opentelemetry.io/api/key"
+  "go.opentelemetry.io/api/core"
+  "go.opentelemetry.io/api/key"
 	"go.opentelemetry.io/api/metric"
 	"go.opentelemetry.io/api/tag"
 	"go.opentelemetry.io/api/trace"
@@ -95,9 +97,14 @@ func main() {
 	}
 }
 
-func trustAwareLinker() {
-  // Use trace.ChildOf() if we trust the source, and trace.Link() if not.
-  // https://github.com/open-telemetry/opentelemetry-go/blob/0eb73325ce9e9855c21e783fb8236223edeedbef/sdk/trace/tracer.go#L44
+func trustAwareLinker(spanCtx core.SpanContext, req *http.Request) trace.SpanOption {
+  // Use trace.ChildOf() if we trust the source, and trace.FollowsFrom() if not.
+  ip, _, err := net.SplitHostPort(req.RemoteAddr)
+  userIP := net.ParseIP(ip)
+  if err == nil && userIP.IsLoopback() {
+    return trace.FollowsFrom(spanCtx)
+  }
+  return trace.ChildOf(spanCtx)
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
@@ -111,7 +118,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 		req.Context(),
 		"root",
 		trace.WithAttributes(attrs...),
-		trace.ChildOf(spanCtx),
+		trustAwareLinker(spanCtx, req),
 	)
 	defer span.End()
 
@@ -130,7 +137,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		req.Context(),
 		"fibonacci",
 		trace.WithAttributes(attrs...),
-		trace.ChildOf(spanCtx),
+		trustAwareLinker(spanCtx, req),
 	)
 	defer span.End()
 
