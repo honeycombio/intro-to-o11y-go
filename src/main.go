@@ -22,7 +22,7 @@ import (
 	"go.opentelemetry.io/api/tag"
 	"go.opentelemetry.io/api/trace"
 	"go.opentelemetry.io/plugin/httptrace"
-	// _ "go.opentelemetry.io/experimental/streaming/exporter/stderr/install"
+	"go.opentelemetry.io/exporter/trace/stdout"
 )
 
 var (
@@ -40,18 +40,24 @@ var (
 )
 
 func main() {
-	apikey, _ := os.LookupEnv("HNY_KEY")
-	dataset, _ := os.LookupEnv("HNY_DATASET")
 	serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
-	exporter := honeycomb.NewExporter(honeycomb.Config{
+	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
+	if err != nil {
+		log.Fatal(err)
+	}
+	sdktrace.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(std))
+
+	apikey, _ := os.LookupEnv("HNY_KEY")
+	dataset, _ := os.LookupEnv("HNY_DATASET")
+	hny := honeycomb.NewExporter(honeycomb.Config{
 		ApiKey:      apikey,
 		Dataset:     dataset,
 		Debug:       false,
 		ServiceName: serviceName,
 	})
-	defer exporter.Close()
-	exporter.Register()
+	defer hny.Close()
+	hny.Register()
 
 	jExporter, err := jaeger.NewExporter(
 		jaeger.WithCollectorEndpoint("http://35.247.167.151:16686/api/traces"),
@@ -62,10 +68,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Wrap exporter with SimpleSpanProcessor and register the processor.
-	ssp := sdktrace.NewSimpleSpanProcessor(jExporter)
-	sdktrace.RegisterSpanProcessor(ssp)
+	sdktrace.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(jExporter))
 
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(rootHandler))
@@ -93,7 +96,7 @@ func main() {
 }
 
 func trustAwareLinker() {
-  
+  // Use trace.ChildOf() if we trust the source, and trace.Link() if not.
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
