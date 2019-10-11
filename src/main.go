@@ -75,9 +75,9 @@ func main() {
 	sdktrace.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(jExporter))
 
 	mux := http.NewServeMux()
-  mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler)))
+  mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler), "root"))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
-	mux.Handle("/fib", http.HandlerFunc(fibHandler))
+  mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
 	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
 	os.Stderr.WriteString("Initializing the server...\n")
 
@@ -118,18 +118,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
-	attrs, tags, spanCtx := httptrace.Extract(req.Context(), req)
-	req = req.WithContext(tag.WithMap(req.Context(), tag.NewMap(tag.MapUpdate{
-		MultiKV: tags,
-	})))
-	ctx, span := trace.GlobalTracer().Start(
-		req.Context(),
-		"fibonacci",
-		trace.WithAttributes(attrs...),
-		trustAwareLinker(spanCtx, req),
-	)
-	defer span.End()
-
+  ctx := req.Context()
 	var err error
 	var i int
 	if len(req.URL.Query()["i"]) != 1 {
@@ -140,11 +129,9 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		fmt.Fprintf(w, "Couldn't parse index '%s'.", req.URL.Query()["i"])
 		w.WriteHeader(503)
-		// This shouldn't be necessary in a finished OTel http auto-instrument.
-		span.SetStatus(codes.InvalidArgument)
 		return
 	}
-  span.SetAttribute(key.New("parameter").Int(i))
+  trace.CurrentSpan(ctx).SetAttribute(key.New("parameter").Int(i))
 	ret := 0
 	failed := false
 
@@ -190,14 +177,13 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 						failed = true
 					}
 					fmt.Fprintf(w, "Failed to call child index '%s'.\n", n)
-					span.SetStatus(codes.Internal)
 				}
 				wg.Done()
 			}(i - offset)
 		}
 		wg.Wait()
 	}
-  span.SetAttribute(key.New("result").Int(ret))
+  trace.CurrentSpan(ctx).SetAttribute(key.New("result").Int(ret))
 	fmt.Fprintf(w, "%d", ret)
 }
 
