@@ -97,6 +97,7 @@ func main() {
 
 func trustAwareLinker() {
   // Use trace.ChildOf() if we trust the source, and trace.Link() if not.
+  // https://github.com/open-telemetry/opentelemetry-go/blob/0eb73325ce9e9855c21e783fb8236223edeedbef/sdk/trace/tracer.go#L44
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
