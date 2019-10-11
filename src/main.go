@@ -102,9 +102,9 @@ func trustAwareLinker(spanCtx core.SpanContext, req *http.Request) trace.SpanOpt
   ip, _, err := net.SplitHostPort(req.RemoteAddr)
   userIP := net.ParseIP(ip)
   if err == nil && userIP.IsLoopback() {
-    return trace.FollowsFrom(spanCtx)
+    return trace.ChildOf(spanCtx)
   }
-  return trace.ChildOf(spanCtx)
+  return trace.FollowsFrom(spanCtx)
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
@@ -155,6 +155,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		span.SetStatus(codes.InvalidArgument)
 		return
 	}
+  span.SetAttribute(key.New("parameter").Int(i))
 	ret := 0
 	failed := false
 
@@ -187,6 +188,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 						return err
 					}
 					trace.CurrentSpan(ctx).SetStatus(codes.OK)
+          trace.CurrentSpan(ctx).SetAttributes(key.New("result").Int(resp))
 					mtx.Lock()
 					defer mtx.Unlock()
 					ret += resp
@@ -205,6 +207,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		wg.Wait()
 	}
+  span.SetAttribute(key.New("result").Int(ret))
 	fmt.Fprintf(w, "%d", ret)
 }
 
