@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/api/tag"
 	"go.opentelemetry.io/api/trace"
 	"go.opentelemetry.io/plugin/httptrace"
+  "go.opentelemetry.io/plugin/othttp"
 	"go.opentelemetry.io/exporter/trace/stdout"
 )
 
@@ -61,8 +62,9 @@ func main() {
 	defer hny.Close()
 	hny.Register()
 
+	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
 	jExporter, err := jaeger.NewExporter(
-		jaeger.WithCollectorEndpoint("http://35.247.167.151:16686/api/traces"),
+		jaeger.WithCollectorEndpoint(jaegerEndpoint),
 		jaeger.WithProcess(jaeger.Process{
 			ServiceName: serviceName,
 		}),
@@ -73,7 +75,7 @@ func main() {
 	sdktrace.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(jExporter))
 
 	mux := http.NewServeMux()
-	mux.Handle("/", http.HandlerFunc(rootHandler))
+  mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler)))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", http.HandlerFunc(fibHandler))
 	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
@@ -108,21 +110,8 @@ func trustAwareLinker(spanCtx core.SpanContext, req *http.Request) trace.SpanOpt
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
-	attrs, tags, spanCtx := httptrace.Extract(req.Context(), req)
-
-	req = req.WithContext(tag.WithMap(req.Context(), tag.NewMap(tag.MapUpdate{
-		MultiKV: tags,
-	})))
-
-	ctx, span := trace.GlobalTracer().Start(
-		req.Context(),
-		"root",
-		trace.WithAttributes(attrs...),
-		trustAwareLinker(spanCtx, req),
-	)
-	defer span.End()
-
-	span.AddEvent(ctx, "annotation within span")
+  ctx := req.Context()
+  trace.CurrentSpan(ctx).AddEvent(ctx, "annotation within span")
 	_ = dbHandler(ctx, "foo")
 
 	fmt.Fprintf(w, "Click [Tools] > [Logs] to see spans!")
@@ -171,6 +160,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 			go func(n int) {
 				err := trace.GlobalTracer().WithSpan(ctx, "fibClient", func(ctx context.Context) error {
 					url := fmt.Sprintf("http://localhost:3000/fib?i=%d", n)
+          trace.CurrentSpan(ctx).SetAttributes(key.New("url").String(url))
 					req, _ := http.NewRequest("GET", url, nil)
 					ctx, req = httptrace.W3C(ctx, req)
 					httptrace.Inject(ctx, req)
