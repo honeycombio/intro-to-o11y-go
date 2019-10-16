@@ -54,7 +54,7 @@ func main() {
 	hny := honeycomb.NewExporter(honeycomb.Config{
 		ApiKey:      apikey,
 		Dataset:     dataset,
-		Debug:       false,
+		Debug:       true,
 		ServiceName: serviceName,
 	})
 	defer hny.Close()
