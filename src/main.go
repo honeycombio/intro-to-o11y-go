@@ -17,6 +17,7 @@ import (
 	sdktrace "go.opentelemetry.io/sdk/trace"
 	"google.golang.org/grpc/codes"
 
+	"go.opentelemetry.io/api/distributedcontext"
 	"go.opentelemetry.io/api/key"
 	"go.opentelemetry.io/api/metric"
 	"go.opentelemetry.io/api/trace"
@@ -40,24 +41,30 @@ var (
 )
 
 func main() {
+	sdktrace.Register()
+	sdktrace.ApplyConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()})
+
 	serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
 	if err != nil {
 		log.Fatal(err)
 	}
-	sdktrace.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(std))
+	std.RegisterSimpleSpanProcessor()
 
 	apikey, _ := os.LookupEnv("HNY_KEY")
 	dataset, _ := os.LookupEnv("HNY_DATASET")
-	hny := honeycomb.NewExporter(honeycomb.Config{
+	hny, err := honeycomb.NewExporter(honeycomb.Config{
 		ApiKey:      apikey,
 		Dataset:     dataset,
 		Debug:       true,
 		ServiceName: serviceName,
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer hny.Close()
-	hny.Register()
+	hny.RegisterSimpleSpanProcessor()
 
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
 	jExporter, err := jaeger.NewExporter(
@@ -69,7 +76,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	sdktrace.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(jExporter))
+	jExporter.RegisterSimpleSpanProcessor()
 
 	mux := http.NewServeMux()
 	mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler), "root"))
@@ -79,9 +86,9 @@ func main() {
 	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
 	os.Stderr.WriteString("Initializing the server...\n")
 
-	ctx := tag.NewContext(context.Background(),
-		tag.Insert(appKey.String(os.Getenv("PROJECT_DOMAIN"))),
-		tag.Insert(containerKey.String(os.Getenv("HOSTNAME"))),
+	ctx := distributedcontext.NewContext(context.Background(),
+		distributedcontext.Insert(appKey.String(os.Getenv("PROJECT_DOMAIN"))),
+		distributedcontext.Insert(containerKey.String(os.Getenv("HOSTNAME"))),
 	)
 
 	commonLabels := meter.DefineLabels(ctx, appKey.Int(10))
