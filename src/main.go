@@ -17,7 +17,7 @@ import (
 	sdktrace "go.opentelemetry.io/sdk/trace"
 	"google.golang.org/grpc/codes"
 
-	"go.opentelemetry.io/api/distributedcontext"
+  "go.opentelemetry.io/api/distributedcontext"
 	"go.opentelemetry.io/api/key"
 	"go.opentelemetry.io/api/metric"
 	"go.opentelemetry.io/api/trace"
@@ -41,16 +41,16 @@ var (
 )
 
 func main() {
-	sdktrace.Register()
-	sdktrace.ApplyConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()})
+  sdktrace.Register()
+  sdktrace.ApplyConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()})
 
-	serviceName, _ := os.LookupEnv("PROJECT_NAME")
+  serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
 	if err != nil {
 		log.Fatal(err)
 	}
-	std.RegisterSimpleSpanProcessor()
+  std.RegisterSimpleSpanProcessor()
 
 	apikey, _ := os.LookupEnv("HNY_KEY")
 	dataset, _ := os.LookupEnv("HNY_DATASET")
@@ -82,7 +82,8 @@ func main() {
 	mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler), "root"))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	// TODO(lizf): Pass WithPublicEndpoint() for /fib and no WithPublicEndpoint() for /fibinternal
-	mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
+	mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci", othttp.WithPublicEndpoint()))
+	mux.Handle("/fibinternal", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
 	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
 	os.Stderr.WriteString("Initializing the server...\n")
 
@@ -141,8 +142,9 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 			wg.Add(1)
 			go func(n int) {
 				err := trace.GlobalTracer().WithSpan(ctx, "fibClient", func(ctx context.Context) error {
-					url := fmt.Sprintf("http://localhost:3000/fib?i=%d", n)
+					url := fmt.Sprintf("http://localhost:3000/fibinternal?i=%d", n)
 					trace.CurrentSpan(ctx).SetAttributes(key.New("url").String(url))
+          trace.CurrentSpan(ctx).AddEvent(ctx, "Fib loop count", key.New("fib-loop").Int(n))
 					req, _ := http.NewRequest("GET", url, nil)
 					ctx, req = httptrace.W3C(ctx, req)
 					httptrace.Inject(ctx, req)
