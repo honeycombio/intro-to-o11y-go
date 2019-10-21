@@ -7,7 +7,5 @@ require (
 	github.com/honeycombio/opentelemetry-exporter-go v0.0.5
 	go.opentelemetry.io v0.0.0-20191017223542-1191a0783676
 	golang.org/x/net v0.0.0-20191021144547-ec77196f6094 // indirect
-	golang.org/x/sys v0.0.0-20191020212454-3e7259c5e7c2 // indirect
-	golang.org/x/tools v0.0.0-20191018212557-ed542cd5b28a // indirect
 	google.golang.org/grpc v1.24.0
 )
