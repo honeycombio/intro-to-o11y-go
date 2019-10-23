@@ -175,8 +175,8 @@ github.com/honeycombio/libhoney-go v1.12.0 h1:Nl4pgA/QZikNp0FlYGGq6n27X69SnE9DXk
 github.com/honeycombio/libhoney-go v1.12.0/go.mod h1:jdLxh51fcBTy6XIpx1efuJmHePs2xUfVkw25lr+hsmg=
 github.com/honeycombio/libhoney-go v1.12.1 h1:BUMNgFFoA7Rq+7+kwwxQInsb7LO2/we4JAxJvZ/9aBE=
 github.com/honeycombio/libhoney-go v1.12.1/go.mod h1:jdLxh51fcBTy6XIpx1efuJmHePs2xUfVkw25lr+hsmg=
-github.com/honeycombio/opentelemetry-exporter-go v0.0.5 h1:sN2I4x+qXFNmUgOf1EIT/73aOHtygbEN29MZqoZ5J44=
-github.com/honeycombio/opentelemetry-exporter-go v0.0.5/go.mod h1:q06Dhao+A2gktQc8d2W4fBOmhwAqpPxKRVAlhuL9f1k=
+github.com/honeycombio/opentelemetry-exporter-go v0.0.6 h1:o+xBUQHBkXa61i6p7UCgvwu+xuhtzx0LH73ztLyVQig=
+github.com/honeycombio/opentelemetry-exporter-go v0.0.6/go.mod h1:Iy2b6bQzDIJdSlffjp1hHGchmB9cKN8rHGC2SV1zBUE=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
@@ -317,9 +317,9 @@ github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
-go.opentelemetry.io v0.0.0-20191017054958-5e409de1aa9b/go.mod h1:y8PezKbkyXHlKAROsLuPXZ4V/f+/RmOpt+33tIC9ZeQ=
-go.opentelemetry.io v0.0.0-20191017223542-1191a0783676 h1:wgx9BYGsLWMun6qNGIMzDlzyCXjZXUic2SNNwYjDYN4=
-go.opentelemetry.io v0.0.0-20191017223542-1191a0783676/go.mod h1:y8PezKbkyXHlKAROsLuPXZ4V/f+/RmOpt+33tIC9ZeQ=
+go.opentelemetry.io v0.0.0-20191023062924-b3247f04fc47/go.mod h1:y8PezKbkyXHlKAROsLuPXZ4V/f+/RmOpt+33tIC9ZeQ=
+go.opentelemetry.io v0.0.0-20191023164856-8cb378678945 h1:HRW6lZ/ztyMzka1/T1PoctDoXh6Pgkf94yCKwM6mpJI=
+go.opentelemetry.io v0.0.0-20191023164856-8cb378678945/go.mod h1:uKxxjwByRQZepKF/iX2cOFMuinmLqs6LozbsLFl7C3U=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/multierr v1.1.0/go.mod h1:wR5kodmAFQ0UK8QlbwjlSNy0Z68gJhDJUG5sjR94q/0=
 go.uber.org/zap v1.10.0/go.mod h1:vwi/ZaCAaUcBkycHslxD9B2zi4UTXhF60s6SWpuDF0Q=

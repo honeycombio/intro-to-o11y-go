@@ -40,6 +40,18 @@ var (
 	meter = metric.GlobalMeter()
 )
 
+func initTracer(exporter *honeycomb.Exporter) {
+	exporter.RegisterSimpleSpanProcessor()
+	// For the demonstration, use sdktrace.AlwaysSample sampler to sample all traces.
+	// In a production application, use sdktrace.ProbabilitySampler with a desired probability.
+	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
+		sdktrace.WithSyncer(exporter))
+	if err != nil {
+		log.Fatal(err)
+	}
+	trace.SetGlobalProvider(tp)
+}
+
 func main() {
   sdktrace.Register()
   sdktrace.ApplyConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()})
@@ -64,7 +76,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer hny.Close()
-	hny.RegisterSimpleSpanProcessor()
+  initTracer(hny)
 
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
 	jExporter, err := jaeger.NewExporter(
