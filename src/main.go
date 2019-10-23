@@ -100,10 +100,10 @@ func main() {
 		distributedcontext.Insert(containerKey.String(os.Getenv("HOSTNAME"))),
 	)
 
-	commonLabels := meter.DefineLabels(ctx, appKey.Int(10))
+	commonLabels := meter.Labels(ctx, appKey.Int(10))
 
-	used := diskUsedMetric.GetHandle(commonLabels)
-	quota := diskQuotaMetric.GetHandle(commonLabels)
+	used := diskUsedMetric.AcquireHandle(commonLabels)
+	quota := diskQuotaMetric.AcquireHandle(commonLabels)
 
 	go updateDiskMetrics(ctx, used, quota)
 
