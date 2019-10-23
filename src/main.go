@@ -41,15 +41,6 @@ var (
 )
 
 func main() {
-  // For the demonstration, use sdktrace.AlwaysSample sampler to sample all traces.
-	// In a production application, use sdktrace.ProbabilitySampler with a desired probability.
-	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
-		sdktrace.WithSyncer(exporter))
-	if err != nil {
-		log.Fatal(err)
-	}
-	trace.SetGlobalProvider(tp)
-
   serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
   // stdout exporter
@@ -72,7 +63,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer hny.Close()
-  exporter.RegisterSimpleSpanProcessor()
+  hny.RegisterSimpleSpanProcessor()
 
   // jaeger exporter
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
@@ -86,6 +77,14 @@ func main() {
 		log.Fatal(err)
 	}
 	jExporter.RegisterSimpleSpanProcessor()
+  
+  tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
+		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny), sdktrace.WithSyncer(jExporter))
+	if err != nil {
+		log.Fatal(err)
+	}
+	trace.SetGlobalProvider(tp)
+
 
 	mux := http.NewServeMux()
 	mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler), "root"))
