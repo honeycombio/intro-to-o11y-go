@@ -40,9 +40,8 @@ var (
 	)
 )
 
-func initTracer(exporter *honeycomb.Exporter) {
-	exporter.RegisterSimpleSpanProcessor()
-	// For the demonstration, use sdktrace.AlwaysSample sampler to sample all traces.
+func main() {
+  // For the demonstration, use sdktrace.AlwaysSample sampler to sample all traces.
 	// In a production application, use sdktrace.ProbabilitySampler with a desired probability.
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(exporter))
@@ -50,19 +49,17 @@ func initTracer(exporter *honeycomb.Exporter) {
 		log.Fatal(err)
 	}
 	trace.SetGlobalProvider(tp)
-}
-
-func main() {
-  sdktrace.ApplyConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()})
 
   serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
+  // stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
 	if err != nil {
 		log.Fatal(err)
 	}
   std.RegisterSimpleSpanProcessor()
 
+  // honeycomb exporter
 	apikey, _ := os.LookupEnv("HNY_KEY")
 	dataset, _ := os.LookupEnv("HNY_DATASET")
 	hny, err := honeycomb.NewExporter(honeycomb.Config{
@@ -76,15 +73,8 @@ func main() {
 	}
 	defer hny.Close()
   exporter.RegisterSimpleSpanProcessor()
-	// For the demonstration, use sdktrace.AlwaysSample sampler to sample all traces.
-	// In a production application, use sdktrace.ProbabilitySampler with a desired probability.
-	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
-		sdktrace.WithSyncer(exporter))
-	if err != nil {
-		log.Fatal(err)
-	}
-	trace.SetGlobalProvider(tp)
 
+  // jaeger exporter
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
 	jExporter, err := jaeger.NewExporter(
 		jaeger.WithCollectorEndpoint(jaegerEndpoint),
