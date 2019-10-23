@@ -123,6 +123,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
+  tr := trace.GlobalProvider().GetTracer("fibHandler")
 	var err error
 	var i int
 	if len(req.URL.Query()["i"]) != 1 {
@@ -149,7 +150,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		for offset := 1; offset < 3; offset++ {
 			wg.Add(1)
 			go func(n int) {
-				err := trace.GlobalTracer().WithSpan(ctx, "fibClient", func(ctx context.Context) error {
+				err := tr.WithSpan(ctx, "fibClient", func(ctx context.Context) error {
 					url := fmt.Sprintf("http://localhost:3000/fibinternal?i=%d", n)
 					trace.CurrentSpan(ctx).SetAttributes(key.New("url").String(url))
           trace.CurrentSpan(ctx).AddEvent(ctx, "Fib loop count", key.New("fib-loop").Int(n))
@@ -207,7 +208,8 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64GaugeHandl
 }
 
 func dbHandler(ctx context.Context, color string) int {
-	ctx, span := trace.GlobalTracer().Start(ctx, "database")
+  tr := trace.GlobalProvider().GetTracer("dbHandler")
+	ctx, span := tr.Start(ctx, "database")
 	defer span.End()
 
 	// Pretend we talked to a database here.
