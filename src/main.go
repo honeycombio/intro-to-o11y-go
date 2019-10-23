@@ -29,15 +29,15 @@ import (
 var (
 	appKey         = key.New("honeycomb.io/glitch/app")          // The Glitch app name.
 	containerKey   = key.New("honeycomb.io/glitch/container_id") // The Glitch container id.
-	diskUsedMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
+  meter = metric.GlobalMeter()
+	diskUsedMetric = meter.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
 	)
-	diskQuotaMetric = metric.NewFloat64Gauge("honeycomb.io/glitch/disk_quota",
+	diskQuotaMetric = meter.NewFloat64Gauge("honeycomb.io/glitch/disk_quota",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk quota available."),
 	)
-	meter = metric.GlobalMeter()
 )
 
 func initTracer(exporter *honeycomb.Exporter) {
@@ -53,7 +53,6 @@ func initTracer(exporter *honeycomb.Exporter) {
 }
 
 func main() {
-  sdktrace.Register()
   sdktrace.ApplyConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()})
 
   serviceName, _ := os.LookupEnv("PROJECT_NAME")
@@ -76,7 +75,15 @@ func main() {
 		log.Fatal(err)
 	}
 	defer hny.Close()
-  initTracer(hny)
+  exporter.RegisterSimpleSpanProcessor()
+	// For the demonstration, use sdktrace.AlwaysSample sampler to sample all traces.
+	// In a production application, use sdktrace.ProbabilitySampler with a desired probability.
+	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
+		sdktrace.WithSyncer(exporter))
+	if err != nil {
+		log.Fatal(err)
+	}
+	trace.SetGlobalProvider(tp)
 
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
 	jExporter, err := jaeger.NewExporter(
