@@ -9,10 +9,10 @@
   "restart": {
     "exclude": [
       "^go/",
-      "^pkg/",
+      "^pkg/"
     ],
     "include": [
-      "\\.go$",
+      "\\.go$"
     ]
   },
   "throttle": 5
