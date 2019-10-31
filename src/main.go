@@ -31,7 +31,7 @@ import (
 var (
 	appKey         = key.New("honeycomb.io/glitch/app")          // The Glitch app name.
 	containerKey   = key.New("honeycomb.io/glitch/container_id") // The Glitch container id.
-  meter = global.MeterProvider().GetTracer("example/namedtracer/main")
+  meter = global.MeterProvider().GetMeter("main")
 	diskUsedMetric = meter.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
@@ -114,7 +114,7 @@ func main() {
 		containerKey.String(os.Getenv("HOSTNAME")),
 	)
 
-	commonLabels := meter.Labels(ctx, appKey.Int(10))
+	commonLabels := meter.Labels(appKey.Int(10))
 
 	used := diskUsedMetric.AcquireHandle(commonLabels)
 	quota := diskQuotaMetric.AcquireHandle(commonLabels)
