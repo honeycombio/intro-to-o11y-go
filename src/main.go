@@ -14,6 +14,7 @@ import (
 
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"go.opentelemetry.io/exporter/trace/jaeger"
+  "go.opentelemetry.io/exoprter/trace/stackdriver"
 	sdktrace "go.opentelemetry.io/sdk/trace"
 	"google.golang.org/grpc/codes"
 

@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "velocity-eu-2019",
+  "private_key_id": "452e0032a2cba41ed5b2fce2c3521df2b9fc459b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCMIa0weccdBpjO\nP2VdTEKpqaZIKNKKBWCTxnI8MVzWHuPuqwxTuD39WoIvYGH71f5+tlAkj/wvjN4G\ncgtD+aqviZbfA1qI/YhfoCq0dkvQxygGWz/6LPn9a4rEcPJER0bP9d1cWakYmgl6\n/0dJ83xALukKy5tbjXsEtZ9HqmJ26y8SydLxGxuXvPCBwO7sEP8sT0ZFVIrOcgYL\n4vg+44ncB828G9SyRdVx9CuF+KNNN9Fuunjie0fylis6OjLglYffCXSe5Vc/awoR\nWGHAZsKMfdO6uPQfjVvTa/A75iSpaYL6Es/shAjPFhkQ0NwQR47U6pQXEuEik1Bu\nIed+wcwlAgMBAAECggEAHQYknvO6H/Lr11weHJLdA9MVk8CQyvGOLU1e/8Shm9/O\nCfL3nKd+f2ktqa5m3QhXq9sLAmeoLhkZK3CXkL63caAn1Y0WRWVtx5CfB72wuk9l\npNtlhuWl6a1KkqFqLGYu7ofYD3aqpWPSLt2M4G5D/+83aXr+dJn7LuCHWwqZVlPV\nd1fuG4c8jfjxwdK5ZKkk/k+xFwR5CV3WCIYxJ3SCOXj+gx8ZXRTsfNpfP86jgrDb\nykeuHMETWh/0aWZXI8bYt4gnTXJECYTUQRcqAFGDALYvHlQileGcktRiq20SZa0g\nBExm3NRuzOrzH5R7TGMJNV1Mla50nTGXavlhwQs8QQKBgQC/dUHEzZlNJ5pMYz5y\noe2SVN0sbpEFMaOifhhfWQ9EHvdNc7q9kO00LO/CpA/BLJVrwV03jUsC18eRSklx\nVpSr1I0wvEGvTneXAK7zGtuflE+NcK5xrPk/5x/qOs+W438YMXvCMAMZB6qN0aF0\nrSZknNg7n/o41887OG5saRtX3QKBgQC7Xvd87hvs5G7WwvTKFABQrPYEIxPwLBW6\nJnlughF/Jb/4kSWZG2s7zyqUXokz4KfbfYveYx9LV+zXi3rpQVGbYhczJUJs/X7A\nKiIc60H5ZhJw5veFAx1cTSRG4oCy6ZG+wd4+3HcPqfdUlO2kjSR0QRO0VKOb9umQ\nbXkAmjbk6QKBgQCZodD1yHmElQvW0ihxOgj2TEzyc4LBZTTGlmKeWEvMwQB3US9/\nIEWHgaufR6EwxMLeJdrUUffoPxhwOOk4Hl7Mh5IIkngu4UtLi4vXniywIAW6HLqO\nk1uq8J8GiMy9aq44zrRdfcNumV090gK6KptNTyKgrd3PMTWkcsMBEVKUrQKBgQCq\n5+qSd5XdNFetaNJjaG8JJ1qXV2+eSHfg/asRk25mLYa3MZ270/ix6zsJbllzil1R\npWhpBrzKun579Ou9yyimtIg4zKmURHzSxxuqiSP6WpJDjUkEeFzVjj+isIN3rfiU\nqL0RVYL8NKo26kkBKQSxTZKtj+5UGpncdR5D4GZl0QKBgCOMSeoQJaR1F4RUrTCG\nqgD9iyIFCo6t/50EblEKfJG4YkroGGjmiLFu0nd1Rcr/+FKYgbKLF4bBLKcTYMRs\n1kJwQjUt4WT2mI7cviWezatLjuHtedN7ilnfKC0A8uTucN6oujkyS3DIgAUhqdbh\nkNQjlYbbiEofsSyXUDBoLrNG\n-----END PRIVATE KEY-----\n",
+  "client_email": "opentelemetry-workshop-trace@velocity-eu-2019.iam.gserviceaccount.com",
+  "client_id": "105782739023647928831",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/opentelemetry-workshop-trace%40velocity-eu-2019.iam.gserviceaccount.com"
+}

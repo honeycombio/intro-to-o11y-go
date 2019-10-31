@@ -332,6 +332,7 @@ go.opentelemetry.io v0.0.0-20191023164856-8cb378678945 h1:HRW6lZ/ztyMzka1/T1Poct
 go.opentelemetry.io v0.0.0-20191023164856-8cb378678945/go.mod h1:uKxxjwByRQZepKF/iX2cOFMuinmLqs6LozbsLFl7C3U=
 go.opentelemetry.io v0.0.0-20191025183852-68310ab97435 h1:x7aEYoWgLz8ivwrs7tzH5/hawWiGnRIv6eWaeUfK1Ak=
 go.opentelemetry.io v0.0.0-20191025183852-68310ab97435/go.mod h1:l6N5a2U3WWW8hQ2h8D/nUfLnv6BE/H3ikqksaWL8U6c=
+go.opentelemetry.io v0.0.0-20191031063502-886243699327 h1:RNus8zpY56qn80T6sqMFKN6dtSca9vYyYkKFTdYoyqg=
 go.opentelemetry.io/exporter/trace/jaeger v0.0.0-20191028161355-d9c4aa5cee3a h1:Ptb4DOFRysd9XgpAphhLZODo5hkIhEhHqAn4K94OFfg=
 go.opentelemetry.io/exporter/trace/jaeger v0.0.0-20191028161355-d9c4aa5cee3a/go.mod h1:Q+rRvoyv+HlT65SfCnuaoyUgsiG0VWNyjYgpfYiW6f0=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
