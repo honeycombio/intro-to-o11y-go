@@ -196,6 +196,8 @@ github.com/honeycombio/opentelemetry-exporter-go v0.0.7 h1:THnGXr7MwsXG7G/GtEh7m
 github.com/honeycombio/opentelemetry-exporter-go v0.0.7/go.mod h1:OsUeG7wtXO8dH/OZIh2fEzUaH5D9pU34kw2u+1fx7Hc=
 github.com/honeycombio/opentelemetry-exporter-go v0.0.8 h1:j5Ums1nD/frLPD+HgmvMyUVB6Pq1KXOCwfYjEHkDUJw=
 github.com/honeycombio/opentelemetry-exporter-go v0.0.8/go.mod h1:ayko7CkSqQgZ779Zwz3z/C42qRGvlyi0givYxQJlZWE=
+github.com/honeycombio/opentelemetry-exporter-go v0.0.9 h1:CwDG1Rrv47B0sr2kNXZ/FB6xtmrmasSR+5y7eAMfYtE=
+github.com/honeycombio/opentelemetry-exporter-go v0.0.9/go.mod h1:MebbGAPRi4lRHpQdoE6N0QtnPAH6jHcCR6Iq2IOjbT8=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=

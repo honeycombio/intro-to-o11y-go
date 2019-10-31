@@ -31,7 +31,7 @@ import (
 var (
 	appKey         = key.New("honeycomb.io/glitch/app")          // The Glitch app name.
 	containerKey   = key.New("honeycomb.io/glitch/container_id") // The Glitch container id.
-  meter = metric.GlobalMeter()
+  meter = global.MeterProvider().GetTracer("example/namedtracer/main")
 	diskUsedMetric = meter.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
@@ -110,8 +110,8 @@ func main() {
 	os.Stderr.WriteString("Initializing the server...\n")
 
 	ctx := distributedcontext.NewContext(context.Background(),
-		distributedcontext.Insert(appKey.String(os.Getenv("PROJECT_DOMAIN"))),
-		distributedcontext.Insert(containerKey.String(os.Getenv("HOSTNAME"))),
+		appKey.String(os.Getenv("PROJECT_DOMAIN")),
+		containerKey.String(os.Getenv("HOSTNAME")),
 	)
 
 	commonLabels := meter.Labels(ctx, appKey.Int(10))
