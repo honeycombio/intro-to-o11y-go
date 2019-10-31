@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/api/key"
 	"go.opentelemetry.io/api/metric"
 	"go.opentelemetry.io/api/trace"
+  "go.opentelemetry.io/global"
 	"go.opentelemetry.io/exporter/trace/stdout"
 	"go.opentelemetry.io/plugin/httptrace"
 	"go.opentelemetry.io/plugin/othttp"
@@ -83,7 +84,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	trace.SetGlobalProvider(tp)
+  global.SetTraceProvider(tp)
 
 
 	mux := http.NewServeMux()
@@ -123,7 +124,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-  tr := trace.GlobalProvider().GetTracer("fibHandler")
+  tr := global.TraceProvider().GetTracer("fibHandler")
 	var err error
 	var i int
 	if len(req.URL.Query()["i"]) != 1 {
@@ -208,7 +209,7 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64GaugeHandl
 }
 
 func dbHandler(ctx context.Context, color string) int {
-  tr := trace.GlobalProvider().GetTracer("dbHandler")
+  tr := global.TraceProvider().GetTracer("dbHandler")
 	ctx, span := tr.Start(ctx, "database")
 	defer span.End()
 
