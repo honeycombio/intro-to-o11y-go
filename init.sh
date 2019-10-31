@@ -13,8 +13,14 @@ if [ ! -d /tmp/go ]; then
   tar -xzf go1.13.linux-amd64.tar.gz
   rm /tmp/go1.13.linux-amd64.tar.gz
 fi
+
+rm -rf ~/go
+
 cd ~/src
 mkdir -p /tmp/pkg
+if [ ! -L pkg ]; then
+  ln -s /tmp/pkg .
+fi
 if [ ! -L pkg ]; then
   ln -s /tmp/pkg .
 fi
