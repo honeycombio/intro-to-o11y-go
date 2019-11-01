@@ -50,7 +50,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-  std.RegisterSimpleSpanProcessor()
 
   // honeycomb exporter
 	apikey, _ := os.LookupEnv("HNY_KEY")
@@ -65,7 +64,6 @@ func main() {
 		log.Fatal(err)
 	}
 	defer hny.Close()
-  hny.RegisterSimpleSpanProcessor()
   
   // Stackdriver exporter
   // Crecential file specified in GOOGLE_APPLICATION_CREDENTIALS in .env is automatically detected.
@@ -73,12 +71,6 @@ func main() {
   if err != nil {
     log.Fatal(err)
   }
-  sdTp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
-		sdktrace.WithSyncer(sdExporter))
-  if err != nil {
-    log.Fatal(err)
-  }
-  global.SetTraceProvider(sdTp)
 
   // jaeger exporter
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
@@ -91,10 +83,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	jExporter.RegisterSimpleSpanProcessor()
   
   tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
-		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny), sdktrace.WithSyncer(jExporter))
+		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
+    sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
