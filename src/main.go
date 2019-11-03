@@ -157,7 +157,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 			wg.Add(1)
 			go func(n int) {
 				err := tr.WithSpan(ctx, "fibClient", func(ictx context.Context) error {
-					url := fmt.Sprintf("http://localhost:3000/fibinternal?i=%d", n)
+					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?i=%d", n)
 					trace.CurrentSpan(ictx).SetAttributes(key.New("url").String(url))
 					trace.CurrentSpan(ictx).AddEvent(ictx, "Fib loop count", key.New("fib-loop").Int(n))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
