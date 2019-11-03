@@ -14,16 +14,16 @@ import (
 
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"go.opentelemetry.io/exporter/trace/jaeger"
-  "go.opentelemetry.io/exporter/trace/stackdriver"
+	"go.opentelemetry.io/exporter/trace/stackdriver"
 	sdktrace "go.opentelemetry.io/sdk/trace"
 	"google.golang.org/grpc/codes"
 
-  "go.opentelemetry.io/api/distributedcontext"
+	"go.opentelemetry.io/api/distributedcontext"
 	"go.opentelemetry.io/api/key"
 	"go.opentelemetry.io/api/metric"
 	"go.opentelemetry.io/api/trace"
-  "go.opentelemetry.io/global"
 	"go.opentelemetry.io/exporter/trace/stdout"
+	"go.opentelemetry.io/global"
 	"go.opentelemetry.io/plugin/httptrace"
 	"go.opentelemetry.io/plugin/othttp"
 )
@@ -31,7 +31,7 @@ import (
 var (
 	appKey         = key.New("honeycomb.io/glitch/app")          // The Glitch app name.
 	containerKey   = key.New("honeycomb.io/glitch/container_id") // The Glitch container id.
-  meter = global.MeterProvider().GetMeter("main")
+	meter          = global.MeterProvider().GetMeter("main")
 	diskUsedMetric = meter.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
@@ -43,15 +43,15 @@ var (
 )
 
 func main() {
-  serviceName, _ := os.LookupEnv("PROJECT_NAME")
+	serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
-  // stdout exporter
+	// stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-  // honeycomb exporter
+	// honeycomb exporter
 	apikey, _ := os.LookupEnv("HNY_KEY")
 	dataset, _ := os.LookupEnv("HNY_DATASET")
 	hny, err := honeycomb.NewExporter(honeycomb.Config{
@@ -64,15 +64,15 @@ func main() {
 		log.Fatal(err)
 	}
 	defer hny.Close()
-  
-  // Stackdriver exporter
-  // Crecential file specified in GOOGLE_APPLICATION_CREDENTIALS in .env is automatically detected.
-  sdExporter, err := stackdriver.NewExporter()
-  if err != nil {
-    log.Fatal(err)
-  }
 
-  // jaeger exporter
+	// Stackdriver exporter
+	// Crecential file specified in GOOGLE_APPLICATION_CREDENTIALS in .env is automatically detected.
+	sdExporter, err := stackdriver.NewExporter()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// jaeger exporter
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
 	jExporter, err := jaeger.NewExporter(
 		jaeger.WithCollectorEndpoint(jaegerEndpoint),
@@ -83,15 +83,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-  
-  tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
+
+	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
-    sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter))
+		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
-  global.SetTraceProvider(tp)
-
+	global.SetTraceProvider(tp)
 
 	mux := http.NewServeMux()
 	mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler), "root"))
@@ -129,7 +128,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-  tr := global.TraceProvider().GetTracer("fibHandler")
+	tr := global.TraceProvider().GetTracer("fibHandler")
 	var err error
 	var i int
 	if len(req.URL.Query()["i"]) != 1 {
@@ -214,7 +213,7 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64GaugeHandl
 }
 
 func dbHandler(ctx context.Context, color string) int {
-  tr := global.TraceProvider().GetTracer("dbHandler")
+	tr := global.TraceProvider().GetTracer("dbHandler")
 	ctx, span := tr.Start(ctx, "database")
 	defer span.End()
 
