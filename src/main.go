@@ -57,7 +57,7 @@ func main() {
 	hny, err := honeycomb.NewExporter(honeycomb.Config{
 		ApiKey:      apikey,
 		Dataset:     dataset,
-		Debug:       true,
+		Debug:       false,
 		ServiceName: serviceName,
 	})
 	if err != nil {
@@ -156,13 +156,13 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		for offset := 1; offset < 3; offset++ {
 			wg.Add(1)
 			go func(n int) {
-				err := tr.WithSpan(ctx, "fibClient", func(ctx context.Context) error {
+				err := tr.WithSpan(ctx, "fibClient", func(ictx context.Context) error {
 					url := fmt.Sprintf("http://localhost:3000/fibinternal?i=%d", n)
-					trace.CurrentSpan(ctx).SetAttributes(key.New("url").String(url))
-          trace.CurrentSpan(ctx).AddEvent(ctx, "Fib loop count", key.New("fib-loop").Int(n))
-					req, _ := http.NewRequest("GET", url, nil)
-					ctx, req = httptrace.W3C(ctx, req)
-					httptrace.Inject(ctx, req)
+					trace.CurrentSpan(ictx).SetAttributes(key.New("url").String(url))
+					trace.CurrentSpan(ictx).AddEvent(ictx, "Fib loop count", key.New("fib-loop").Int(n))
+					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
+					ictx, req = httptrace.W3C(ictx, req)
+					httptrace.Inject(ictx, req)
 					res, err := client.Do(req)
 					if err != nil {
 						return err
@@ -176,8 +176,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					if err != nil {
 						return err
 					}
-					trace.CurrentSpan(ctx).SetStatus(codes.OK)
-					trace.CurrentSpan(ctx).SetAttributes(key.New("result").Int(resp))
+					trace.CurrentSpan(ictx).SetStatus(codes.OK)
+					trace.CurrentSpan(ictx).SetAttributes(key.New("result").Int(resp))
 					mtx.Lock()
 					defer mtx.Unlock()
 					ret += resp
