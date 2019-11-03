@@ -142,7 +142,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(503)
 		return
 	}
-	trace.CurrentSpan(ctx).SetAttribute(key.New("parameter").Int(i))
+	trace.CurrentSpan(ctx).SetAttribute(key.Int("parameter", i))
 	ret := 0
 	failed := false
 
@@ -158,8 +158,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 			go func(n int) {
 				err := tr.WithSpan(ctx, "fibClient", func(ictx context.Context) error {
 					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?i=%d", n)
-					trace.CurrentSpan(ictx).SetAttributes(key.New("url").String(url))
-					trace.CurrentSpan(ictx).AddEvent(ictx, "Fib loop count", key.New("fib-loop").Int(n))
+					trace.CurrentSpan(ictx).SetAttributes(key.String("url", url))
+					trace.CurrentSpan(ictx).AddEvent(ictx, "Fib loop count", key.Int("fib-loop", n))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
 					ictx, req = httptrace.W3C(ictx, req)
 					httptrace.Inject(ictx, req)
@@ -177,7 +177,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 						return err
 					}
 					trace.CurrentSpan(ictx).SetStatus(codes.OK)
-					trace.CurrentSpan(ictx).SetAttributes(key.New("result").Int(resp))
+					trace.CurrentSpan(ictx).SetAttributes(key.Int("result", resp))
 					mtx.Lock()
 					defer mtx.Unlock()
 					ret += resp
@@ -195,7 +195,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		wg.Wait()
 	}
-	trace.CurrentSpan(ctx).SetAttribute(key.New("result").Int(ret))
+	trace.CurrentSpan(ctx).SetAttribute(key.Int("result", ret))
 	fmt.Fprintf(w, "%d", ret)
 }
 
