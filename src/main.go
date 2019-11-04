@@ -13,19 +13,19 @@ import (
 	"time"
 
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
-	"go.opentelemetry.io/exporter/trace/jaeger"
-	"go.opentelemetry.io/exporter/trace/stackdriver"
-	sdktrace "go.opentelemetry.io/sdk/trace"
+	"go.opentelemetry.io/otel/exporter/trace/jaeger"
+	"go.opentelemetry.io/otel/exporter/trace/stackdriver"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc/codes"
 
-	"go.opentelemetry.io/api/distributedcontext"
-	"go.opentelemetry.io/api/key"
-	"go.opentelemetry.io/api/metric"
-	"go.opentelemetry.io/api/trace"
-	"go.opentelemetry.io/exporter/trace/stdout"
-	"go.opentelemetry.io/global"
-	"go.opentelemetry.io/plugin/httptrace"
-	"go.opentelemetry.io/plugin/othttp"
+	"go.opentelemetry.io/otel/api/distributedcontext"
+	"go.opentelemetry.io/otel/api/key"
+	"go.opentelemetry.io/otel/api/metric"
+	"go.opentelemetry.io/otel/api/trace"
+	"go.opentelemetry.io/otel/exporter/trace/stdout"
+	"go.opentelemetry.io/otel/global"
+	"go.opentelemetry.io/otel/plugin/httptrace"
+	"go.opentelemetry.io/otel/plugin/othttp"
 )
 
 var (
