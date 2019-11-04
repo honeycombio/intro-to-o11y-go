@@ -9,8 +9,8 @@ require (
 	github.com/klauspost/compress v1.9.1 // indirect
 	go.opencensus.io v0.22.1 // indirect
 	go.opentelemetry.io/otel v0.1.0
-	go.opentelemetry.io/otel/exporter/trace/jaeger v0.0.0-20191104202323-6b48fce4ec87
-	go.opentelemetry.io/otel/exporter/trace/stackdriver v0.0.0-20191104202323-6b48fce4ec87
+	go.opentelemetry.io/otel/exporter/trace/jaeger v0.1.0
+	go.opentelemetry.io/otel/exporter/trace/stackdriver v0.1.0
 	golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	golang.org/x/sys v0.0.0-20191029155521-f43be2a4598c // indirect
