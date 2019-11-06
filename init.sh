@@ -14,9 +14,10 @@ if [ ! -d /tmp/go ]; then
   rm /tmp/go1.13.linux-amd64.tar.gz
 fi
 
-cd ~/src
 mkdir -p /tmp/pkg
 if [ ! -L pkg ]; then
-  ln -s /tmp/pkg .
+  ln -s /tmp/pkg ~/pkg
 fi
+cd ~/src
+
 /tmp/go/bin/go run main.go
