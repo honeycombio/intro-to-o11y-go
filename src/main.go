@@ -225,7 +225,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%d", ret)
 }
 
-func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64GaugeHandle) {
+func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64Gauge) {
 	var m runtime.MemStats
 	for {
 		runtime.ReadMemStats(&m)
