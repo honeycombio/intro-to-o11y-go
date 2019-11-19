@@ -22,7 +22,6 @@ import (
   metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	"google.golang.org/grpc/codes"
 
-	"go.opentelemetry.io/otel/api/distributedcontext"
 	"go.opentelemetry.io/otel/api/key"
 	"go.opentelemetry.io/otel/api/metric"
 	"go.opentelemetry.io/otel/api/trace"
@@ -36,15 +35,6 @@ import (
 var (
 	appKey         = key.New("honeycomb.io/glitch/app")          // The Glitch app name.
 	containerKey   = key.New("honeycomb.io/glitch/container_id") // The Glitch container id.
-	meter          = global.MeterProvider().GetMeter("main")
-	diskUsedMetric = meter.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
-		metric.WithKeys(appKey, containerKey),
-		metric.WithDescription("Amount of disk used."),
-	)
-	diskQuotaMetric = meter.NewFloat64Gauge("honeycomb.io/glitch/disk_quota",
-		metric.WithKeys(appKey, containerKey),
-		metric.WithDescription("Amount of disk quota available."),
-	)
 )
 
 func main() {
@@ -52,8 +42,7 @@ func main() {
 
 	selector := simple.NewWithExactMeasure()
 	exporter, err := mout.New(mout.Options{
-		Quantiles:   []float64{0.5, 0.9, 0.99},
-		PrettyPrint: false,
+		PrettyPrint: true,
 	})
 	if err != nil {
 		log.Panicf("failed to initialize metric stdout exporter %v", err)
@@ -61,7 +50,18 @@ func main() {
 	batcher := defaultkeys.New(selector, metricsdk.DefaultLabelEncoder(), true)
 	pusher := push.New(batcher, exporter, 15*time.Second)
 	pusher.Start()
+  global.SetMeterProvider(pusher)
   defer pusher.Stop()
+  
+  meter := global.MeterProvider().GetMeter("main")
+  diskUsedMetric := meter.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
+		metric.WithKeys(appKey, containerKey),
+		metric.WithDescription("Amount of disk used."),
+	)
+  diskQuotaMetric := meter.NewFloat64Gauge("honeycomb.io/glitch/disk_quota",
+		metric.WithKeys(appKey, containerKey),
+		metric.WithDescription("Amount of disk quota available."),
+	)
 
   // stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
@@ -118,17 +118,15 @@ func main() {
 	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
 	os.Stderr.WriteString("Initializing the server...\n")
 
-	ctx := distributedcontext.NewContext(context.Background(),
-		appKey.String(os.Getenv("PROJECT_DOMAIN")),
+	commonLabels := meter.Labels(
+    appKey.String(os.Getenv("PROJECT_DOMAIN")),
 		containerKey.String(os.Getenv("HOSTNAME")),
-	)
-
-	commonLabels := meter.Labels(appKey.Int(10))
+  )
 
 	used := diskUsedMetric.AcquireHandle(commonLabels)
 	quota := diskQuotaMetric.AcquireHandle(commonLabels)
 
-	go updateDiskMetrics(ctx, used, quota)
+  go updateDiskMetrics(context.Background(), used, quota)
 
 	err = http.ListenAndServe(":3000", mux)
 	if err != nil {
