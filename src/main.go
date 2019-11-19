@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+  "runtime"
 	"strconv"
 	"sync"
 	"syscall"
@@ -222,7 +223,9 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64GaugeHandle) {
   var m runtime.MemStats
 	for {
-		var stat syscall.Statfs_t
+    runtime.ReadMemStats(&m)
+
+    var stat syscall.Statfs_t
 		wd, _ := os.Getwd()
 		syscall.Statfs(wd, &stat)
 
@@ -230,7 +233,7 @@ func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64Gauge
 		free := float64(stat.Bfree) * float64(stat.Bsize)
 		used.Set(ctx, all-free)
 		quota.Set(ctx, all)
-    mem.Set(ctx, m.Alloc)
+    mem.Set(ctx, float64(m.Alloc))
 		time.Sleep(time.Minute)
 	}
 }
