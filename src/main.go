@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"go.opentelemetry.io/otel/exporter/trace/jaeger"
 	"go.opentelemetry.io/otel/exporter/trace/stackdriver"
@@ -33,8 +34,8 @@ import (
 )
 
 var (
-	appKey         = key.New("honeycomb.io/glitch/app")          // The Glitch app name.
-	containerKey   = key.New("honeycomb.io/glitch/container_id") // The Glitch container id.
+	appKey         = key.New("glitch.com/app")          // The Glitch app name.
+	containerKey   = key.New("glitch.com/container_id") // The Glitch container id.
 )
 
 func main() {
@@ -54,15 +55,15 @@ func main() {
   defer pusher.Stop()
   
   meter := global.MeterProvider().GetMeter("main")
-  memoryUsedMetric := meter.NewFloat64Gauge("honeycomb.io/glitch/mem_usage",
+  memoryUsedMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/mem_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of memory used."),
 	)
-  diskUsedMetric := meter.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
+  diskUsedMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
 	)
-  diskQuotaMetric := meter.NewFloat64Gauge("honeycomb.io/glitch/disk_quota",
+  diskQuotaMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/disk_quota",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk quota available."),
 	)
@@ -106,9 +107,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+  lExporter, err := lightstep.NewExporter(
+		lightstep.WithAccessToken(os.Getenv("LS_KEY")),
+		lightstep.WithServiceName(serviceName))
+  
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
-		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter))
+		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter), sdktrace.WithSyncer(lExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
