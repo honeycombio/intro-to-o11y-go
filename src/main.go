@@ -18,9 +18,8 @@ import (
 	"go.opentelemetry.io/otel/exporter/trace/stackdriver"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
   "go.opentelemetry.io/otel/sdk/metric/selector/simple"
-  "go.opentelemetry.io/otel/sdk/metric/batcher/defaultkeys"
+  "go.opentelemetry.io/otel/sdk/metric/batcher/ungrouped"
   "go.opentelemetry.io/otel/sdk/metric/controller/push"
-  metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	"google.golang.org/grpc/codes"
 
 	"go.opentelemetry.io/otel/api/key"
@@ -48,7 +47,7 @@ func main() {
 	if err != nil {
 		log.Panicf("failed to initialize metric stdout exporter %v", err)
 	}
-	batcher := defaultkeys.New(selector, metricsdk.DefaultLabelEncoder(), true)
+	batcher := ungrouped.New(selector, false)
 	pusher := push.New(batcher, exporter, 60*time.Second)
 	pusher.Start()
   global.SetMeterProvider(pusher)
