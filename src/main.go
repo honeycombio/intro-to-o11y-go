@@ -33,11 +33,6 @@ import (
 	"go.opentelemetry.io/otel/plugin/othttp"
 )
 
-var (
-	appKey       = key.New("glitch.com/app")          // The Glitch app name.
-	containerKey = key.New("glitch.com/container_id") // The Glitch container id.
-)
-
 func main() {
 	serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
@@ -53,20 +48,6 @@ func main() {
 	pusher.Start()
 	global.SetMeterProvider(pusher)
 	defer pusher.Stop()
-
-	meter := global.MeterProvider().GetMeter("main")
-	memoryUsedMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/mem_usage",
-		metric.WithKeys(appKey, containerKey),
-		metric.WithDescription("Amount of memory used."),
-	)
-	diskUsedMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/disk_usage",
-		metric.WithKeys(appKey, containerKey),
-		metric.WithDescription("Amount of disk used."),
-	)
-	diskQuotaMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/disk_quota",
-		metric.WithKeys(appKey, containerKey),
-		metric.WithDescription("Amount of disk quota available."),
-	)
 
 	// stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
@@ -128,16 +109,7 @@ func main() {
 	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
 	os.Stderr.WriteString("Initializing the server...\n")
 
-	commonLabels := meter.Labels(
-		appKey.String(os.Getenv("PROJECT_DOMAIN")),
-		containerKey.String(os.Getenv("HOSTNAME")),
-	)
-
-	mem := memoryUsedMetric.AcquireHandle(commonLabels)
-	used := diskUsedMetric.AcquireHandle(commonLabels)
-	quota := diskQuotaMetric.AcquireHandle(commonLabels)
-
-	go updateDiskMetrics(context.Background(), used, quota, mem)
+	go updateDiskMetrics(context.Background())
 
 	err = http.ListenAndServe(":3000", mux)
 	if err != nil {
@@ -225,7 +197,28 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%d", ret)
 }
 
-func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64Gauge) {
+func updateDiskMetrics(ctx context.Context) {
+	appKey := key.New("glitch.com/app")                // The Glitch app name.
+	containerKey := key.New("glitch.com/container_id") // The Glitch container id.
+
+	meter := global.MeterProvider().GetMeter("container")
+	mem := meter.NewInt64Gauge("mem_usage",
+		metric.WithKeys(appKey, containerKey),
+		metric.WithDescription("Amount of memory used."),
+	)
+	used := meter.NewFloat64Gauge("disk_usage",
+		metric.WithKeys(appKey, containerKey),
+		metric.WithDescription("Amount of disk used."),
+	)
+	quota := meter.NewFloat64Gauge("disk_quota",
+		metric.WithKeys(appKey, containerKey),
+		metric.WithDescription("Amount of disk quota available."),
+	)
+	goroutines := meter.NewInt64Gauge("num_goroutines",
+		metric.WithKeys(appKey, containerKey),
+		metric.WithDescription("Amount of goroutines running."),
+	)
+
 	var m runtime.MemStats
 	for {
 		runtime.ReadMemStats(&m)
@@ -236,9 +229,15 @@ func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64Gauge
 
 		all := float64(stat.Blocks) * float64(stat.Bsize)
 		free := float64(stat.Bfree) * float64(stat.Bsize)
-		used.Set(ctx, all-free)
-		quota.Set(ctx, all)
-		mem.Set(ctx, float64(m.Alloc))
+
+		meter.RecordBatch(ctx, meter.Labels(
+			appKey.String(os.Getenv("PROJECT_DOMAIN")),
+			containerKey.String(os.Getenv("HOSTNAME"))),
+			used.Measurement(all-free),
+			quota.Measurement(all),
+			mem.Measurement(int64(m.Sys)),
+			goroutines.Measurement(int64(runtime.NumGoroutine())),
+		)
 		time.Sleep(time.Minute)
 	}
 }
