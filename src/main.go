@@ -7,20 +7,20 @@ import (
 	"log"
 	"net/http"
 	"os"
-  "runtime"
+	"runtime"
 	"strconv"
 	"sync"
 	"syscall"
 	"time"
 
-	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
+	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"go.opentelemetry.io/otel/exporter/trace/jaeger"
 	"go.opentelemetry.io/otel/exporter/trace/stackdriver"
+	"go.opentelemetry.io/otel/sdk/metric/batcher/ungrouped"
+	"go.opentelemetry.io/otel/sdk/metric/controller/push"
+	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-  "go.opentelemetry.io/otel/sdk/metric/selector/simple"
-  "go.opentelemetry.io/otel/sdk/metric/batcher/ungrouped"
-  "go.opentelemetry.io/otel/sdk/metric/controller/push"
 	"google.golang.org/grpc/codes"
 
 	"go.opentelemetry.io/otel/api/key"
@@ -34,8 +34,8 @@ import (
 )
 
 var (
-	appKey         = key.New("glitch.com/app")          // The Glitch app name.
-	containerKey   = key.New("glitch.com/container_id") // The Glitch container id.
+	appKey       = key.New("glitch.com/app")          // The Glitch app name.
+	containerKey = key.New("glitch.com/container_id") // The Glitch container id.
 )
 
 func main() {
@@ -51,24 +51,24 @@ func main() {
 	batcher := ungrouped.New(selector, false)
 	pusher := push.New(batcher, exporter, 60*time.Second)
 	pusher.Start()
-  global.SetMeterProvider(pusher)
-  defer pusher.Stop()
-  
-  meter := global.MeterProvider().GetMeter("main")
-  memoryUsedMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/mem_usage",
+	global.SetMeterProvider(pusher)
+	defer pusher.Stop()
+
+	meter := global.MeterProvider().GetMeter("main")
+	memoryUsedMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/mem_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of memory used."),
 	)
-  diskUsedMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/disk_usage",
+	diskUsedMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
 	)
-  diskQuotaMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/disk_quota",
+	diskQuotaMetric := meter.NewFloat64Gauge("lizthegrey.com/sys/disk_quota",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk quota available."),
 	)
 
-  // stdout exporter
+	// stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
 	if err != nil {
 		log.Fatal(err)
@@ -107,10 +107,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-  lExporter, err := lightstep.NewExporter(
+	lExporter, err := lightstep.NewExporter(
 		lightstep.WithAccessToken(os.Getenv("LS_KEY")),
 		lightstep.WithServiceName(serviceName))
-  
+	defer lExporter.Close()
+
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
 		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter), sdktrace.WithSyncer(lExporter))
@@ -128,15 +129,15 @@ func main() {
 	os.Stderr.WriteString("Initializing the server...\n")
 
 	commonLabels := meter.Labels(
-    appKey.String(os.Getenv("PROJECT_DOMAIN")),
+		appKey.String(os.Getenv("PROJECT_DOMAIN")),
 		containerKey.String(os.Getenv("HOSTNAME")),
-  )
+	)
 
-  mem := memoryUsedMetric.AcquireHandle(commonLabels)
+	mem := memoryUsedMetric.AcquireHandle(commonLabels)
 	used := diskUsedMetric.AcquireHandle(commonLabels)
 	quota := diskQuotaMetric.AcquireHandle(commonLabels)
 
-  go updateDiskMetrics(context.Background(), used, quota, mem)
+	go updateDiskMetrics(context.Background(), used, quota, mem)
 
 	err = http.ListenAndServe(":3000", mux)
 	if err != nil {
@@ -225,11 +226,11 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64GaugeHandle) {
-  var m runtime.MemStats
+	var m runtime.MemStats
 	for {
-    runtime.ReadMemStats(&m)
+		runtime.ReadMemStats(&m)
 
-    var stat syscall.Statfs_t
+		var stat syscall.Statfs_t
 		wd, _ := os.Getwd()
 		syscall.Statfs(wd, &stat)
 
@@ -237,7 +238,7 @@ func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64Gauge
 		free := float64(stat.Bfree) * float64(stat.Bsize)
 		used.Set(ctx, all-free)
 		quota.Set(ctx, all)
-    mem.Set(ctx, float64(m.Alloc))
+		mem.Set(ctx, float64(m.Alloc))
 		time.Sleep(time.Minute)
 	}
 }
