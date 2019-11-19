@@ -16,12 +16,17 @@ import (
 	"go.opentelemetry.io/otel/exporter/trace/jaeger"
 	"go.opentelemetry.io/otel/exporter/trace/stackdriver"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+  "go.opentelemetry.io/otel/sdk/metric/selector/simple"
+  "go.opentelemetry.io/otel/sdk/metric/batcher/defaultkeys"
+  "go.opentelemetry.io/otel/sdk/metric/controller/push"
+  metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	"google.golang.org/grpc/codes"
 
 	"go.opentelemetry.io/otel/api/distributedcontext"
 	"go.opentelemetry.io/otel/api/key"
 	"go.opentelemetry.io/otel/api/metric"
 	"go.opentelemetry.io/otel/api/trace"
+	mout "go.opentelemetry.io/otel/exporter/metric/stdout"
 	"go.opentelemetry.io/otel/exporter/trace/stdout"
 	"go.opentelemetry.io/otel/global"
 	"go.opentelemetry.io/otel/plugin/httptrace"
@@ -45,7 +50,20 @@ var (
 func main() {
 	serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
-	// stdout exporter
+	selector := simple.NewWithExactMeasure()
+	exporter, err := mout.New(mout.Options{
+		Quantiles:   []float64{0.5, 0.9, 0.99},
+		PrettyPrint: false,
+	})
+	if err != nil {
+		log.Panicf("failed to initialize metric stdout exporter %v", err)
+	}
+	batcher := defaultkeys.New(selector, metricsdk.DefaultLabelEncoder(), true)
+	pusher := push.New(batcher, exporter, 15*time.Second)
+	pusher.Start()
+  defer pusher.Stop()
+
+  // stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
 	if err != nil {
 		log.Fatal(err)
