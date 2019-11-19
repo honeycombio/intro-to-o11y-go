@@ -7,7 +7,7 @@ require (
 	github.com/honeycombio/libhoney-go v1.12.1 // indirect
 	github.com/honeycombio/opentelemetry-exporter-go v0.1.2
 	github.com/klauspost/compress v1.9.1 // indirect
-	github.com/lightstep/opentelemetry-exporter-go v0.1.3 // indirect
+	github.com/lightstep/opentelemetry-exporter-go v0.1.3
 	go.opencensus.io v0.22.1 // indirect
 	go.opentelemetry.io/otel v0.1.2
 	go.opentelemetry.io/otel/exporter/trace/jaeger v0.1.2
