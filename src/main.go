@@ -49,7 +49,7 @@ func main() {
 		log.Panicf("failed to initialize metric stdout exporter %v", err)
 	}
 	batcher := defaultkeys.New(selector, metricsdk.DefaultLabelEncoder(), true)
-	pusher := push.New(batcher, exporter, 15*time.Second)
+	pusher := push.New(batcher, exporter, 60*time.Second)
 	pusher.Start()
   global.SetMeterProvider(pusher)
   defer pusher.Stop()
@@ -223,7 +223,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64GaugeHandle) {
   var m runtime.MemStats
 	for {
-    // runtime.ReadMemStats(&m)
+    runtime.ReadMemStats(&m)
 
     var stat syscall.Statfs_t
 		wd, _ := os.Getwd()
@@ -233,7 +233,7 @@ func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64Gauge
 		free := float64(stat.Bfree) * float64(stat.Bsize)
 		used.Set(ctx, all-free)
 		quota.Set(ctx, all)
-    // mem.Set(ctx, float64(m.Alloc))
+    mem.Set(ctx, float64(m.Alloc))
 		time.Sleep(time.Minute)
 	}
 }
