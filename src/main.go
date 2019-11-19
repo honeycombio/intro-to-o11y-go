@@ -54,6 +54,10 @@ func main() {
   defer pusher.Stop()
   
   meter := global.MeterProvider().GetMeter("main")
+  memoryUsedMetric := meter.NewFloat64Gauge("honeycomb.io/glitch/mem_usage",
+		metric.WithKeys(appKey, containerKey),
+		metric.WithDescription("Amount of memory used."),
+	)
   diskUsedMetric := meter.NewFloat64Gauge("honeycomb.io/glitch/disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
@@ -123,10 +127,11 @@ func main() {
 		containerKey.String(os.Getenv("HOSTNAME")),
   )
 
+  mem := memoryUsedMetric.AcquireHandle(commonLabels)
 	used := diskUsedMetric.AcquireHandle(commonLabels)
 	quota := diskQuotaMetric.AcquireHandle(commonLabels)
 
-  go updateDiskMetrics(context.Background(), used, quota)
+  go updateDiskMetrics(context.Background(), used, quota, mem)
 
 	err = http.ListenAndServe(":3000", mux)
 	if err != nil {
@@ -214,7 +219,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%d", ret)
 }
 
-func updateDiskMetrics(ctx context.Context, used, quota metric.Float64GaugeHandle) {
+func updateDiskMetrics(ctx context.Context, used, quota, mem metric.Float64GaugeHandle) {
+  var m runtime.MemStats
 	for {
 		var stat syscall.Statfs_t
 		wd, _ := os.Getwd()
@@ -224,6 +230,7 @@ func updateDiskMetrics(ctx context.Context, used, quota metric.Float64GaugeHandl
 		free := float64(stat.Bfree) * float64(stat.Bsize)
 		used.Set(ctx, all-free)
 		quota.Set(ctx, all)
+    mem.Set(ctx, m.Alloc)
 		time.Sleep(time.Minute)
 	}
 }
