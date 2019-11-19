@@ -37,9 +37,7 @@ func main() {
 	serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
 	selector := simple.NewWithExactMeasure()
-	exporter, err := mout.New(mout.Options{
-		PrettyPrint: false,
-	})
+	exporter, err := mout.New()
 	if err != nil {
 		log.Panicf("failed to initialize metric stdout exporter %v", err)
 	}
