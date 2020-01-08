@@ -28,7 +28,7 @@ import (
 	"go.opentelemetry.io/otel/api/trace"
 	mout "go.opentelemetry.io/otel/exporter/metric/stdout"
 	"go.opentelemetry.io/otel/exporter/trace/stdout"
-	"go.opentelemetry.io/otel/global"
+	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/plugin/httptrace"
 	"go.opentelemetry.io/otel/plugin/othttp"
 )
