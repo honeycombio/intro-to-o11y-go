@@ -96,7 +96,6 @@ func main() {
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci", othttp.WithSpanOptions(trace.WithNewRoot())))
 	mux.Handle("/fibinternal", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
-	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
 	os.Stderr.WriteString("Initializing the server...\n")
 
 	go updateDiskMetrics(context.Background())
@@ -239,8 +238,4 @@ func dbHandler(ctx context.Context, color string) int {
 
 	// Pretend we talked to a database here.
 	return 0
-}
-
-func restartHandler(w http.ResponseWriter, req *http.Request) {
-	os.Exit(0)
 }
