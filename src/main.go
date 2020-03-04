@@ -15,8 +15,8 @@ import (
 
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
-	"go.opentelemetry.io/otel/exporter/trace/jaeger"
-	"go.opentelemetry.io/otel/exporter/trace/stackdriver"
+	"go.opentelemetry.io/otel/exporters/trace/jaeger"
+	"go.opentelemetry.io/otel/exporters/trace/stackdriver"
 	"go.opentelemetry.io/otel/sdk/metric/batcher/ungrouped"
 	"go.opentelemetry.io/otel/sdk/metric/controller/push"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
