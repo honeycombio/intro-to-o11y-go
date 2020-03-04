@@ -93,7 +93,7 @@ func main() {
 
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
-		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter), sdktrace.WithSyncer(lExporter))
+    sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter)) //, sdktrace.WithSyncer(lExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -138,7 +138,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(503)
 		return
 	}
-	trace.SpanFromContext(ctx).SetAttribute(key.Int("parameter", i))
+	trace.SpanFromContext(ctx).SetAttributes(key.Int("parameter", i))
 	ret := 0
 	failed := false
 
@@ -191,7 +191,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		wg.Wait()
 	}
-	trace.SpanFromContext(ctx).SetAttribute(key.Int("result", ret))
+	trace.SpanFromContext(ctx).SetAttributes(key.Int("result", ret))
 	fmt.Fprintf(w, "%d", ret)
 }
 
