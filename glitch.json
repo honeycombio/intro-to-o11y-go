@@ -1,3 +1,13 @@
 {
-  "start": "sh ~/init.sh"
+  "start": "sh ~/init.sh",
+  "watch": {
+    "install": {
+      "include": ["^glitch\\.json$", "^init\\.sh$", "^\\.env$"]
+    },
+    "restart": {
+      "exclude": ["^go/", "^pkg/"],
+      "include": ["\\.go$"]
+    },
+    "throttle": 5
+  }
 }

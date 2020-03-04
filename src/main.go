@@ -20,12 +20,12 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc/codes"
 
+	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/api/key"
 	"go.opentelemetry.io/otel/api/metric"
 	"go.opentelemetry.io/otel/api/trace"
 	mout "go.opentelemetry.io/otel/exporters/metric/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/stdout"
-	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/plugin/httptrace"
 	"go.opentelemetry.io/otel/plugin/othttp"
 )
@@ -37,7 +37,7 @@ func main() {
 		Quantiles:   []float64{0.5, 0.9, 0.99},
 		PrettyPrint: false,
 	})
-  defer pusher.Stop()
+	defer pusher.Stop()
 
 	// stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
@@ -85,16 +85,16 @@ func main() {
 
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
-    sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter)) //, sdktrace.WithSyncer(lExporter))
+		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter)) //, sdktrace.WithSyncer(lExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
 	global.SetTraceProvider(tp)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler), "root", othttp.WithSpanOptions(trace.NewRoot())))
+	mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler), "root", othttp.WithSpanOptions(trace.WithNewRoot())))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
-	mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci", othttp.WithSpanOptions(trace.NewRoot())))
+	mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci", othttp.WithSpanOptions(trace.WithNewRoot())))
 	mux.Handle("/fibinternal", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
 	mux.Handle("/quitquitquit", http.HandlerFunc(restartHandler))
 	os.Stderr.WriteString("Initializing the server...\n")
