@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
-	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
+	// "github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	"go.opentelemetry.io/otel/exporters/trace/stackdriver"
 	"go.opentelemetry.io/otel/sdk/metric/batcher/ungrouped"
@@ -26,8 +26,8 @@ import (
 	"go.opentelemetry.io/otel/api/key"
 	"go.opentelemetry.io/otel/api/metric"
 	"go.opentelemetry.io/otel/api/trace"
-	mout "go.opentelemetry.io/otel/exporter/metric/stdout"
-	"go.opentelemetry.io/otel/exporter/trace/stdout"
+	mout "go.opentelemetry.io/otel/exporters/metric/stdout"
+	"go.opentelemetry.io/otel/exporters/trace/stdout"
 	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/plugin/httptrace"
 	"go.opentelemetry.io/otel/plugin/othttp"
@@ -86,10 +86,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	lExporter, err := lightstep.NewExporter(
-		lightstep.WithAccessToken(os.Getenv("LS_KEY")),
-		lightstep.WithServiceName(serviceName))
-	defer lExporter.Close()
+	//lExporter, err := lightstep.NewExporter(
+	//	lightstep.WithAccessToken(os.Getenv("LS_KEY")),
+	//	lightstep.WithServiceName(serviceName))
+	//defer lExporter.Close()
 
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
@@ -117,7 +117,7 @@ func main() {
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	trace.CurrentSpan(ctx).AddEvent(ctx, "annotation within span")
+	trace.SpanFromContext(ctx).AddEvent(ctx, "annotation within span")
 	_ = dbHandler(ctx, "foo")
 
 	fmt.Fprintf(w, "Click [Tools] > [Logs] to see spans!")
@@ -138,7 +138,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(503)
 		return
 	}
-	trace.CurrentSpan(ctx).SetAttribute(key.Int("parameter", i))
+	trace.SpanFromContext(ctx).SetAttribute(key.Int("parameter", i))
 	ret := 0
 	failed := false
 
@@ -154,8 +154,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 			go func(n int) {
 				err := tr.WithSpan(ctx, "fibClient", func(ictx context.Context) error {
 					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?i=%d", n)
-					trace.CurrentSpan(ictx).SetAttributes(key.String("url", url))
-					trace.CurrentSpan(ictx).AddEvent(ictx, "Fib loop count", key.Int("fib-loop", n))
+					trace.SpanFromContext(ictx).SetAttributes(key.String("url", url))
+					trace.SpanFromContext(ictx).AddEvent(ictx, "Fib loop count", key.Int("fib-loop", n))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
 					ictx, req = httptrace.W3C(ictx, req)
 					httptrace.Inject(ictx, req)
@@ -172,8 +172,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					if err != nil {
 						return err
 					}
-					trace.CurrentSpan(ictx).SetStatus(codes.OK)
-					trace.CurrentSpan(ictx).SetAttributes(key.Int("result", resp))
+					trace.SpanFromContext(ictx).SetStatus(codes.OK)
+					trace.SpanFromContext(ictx).SetAttributes(key.Int("result", resp))
 					mtx.Lock()
 					defer mtx.Unlock()
 					ret += resp
@@ -191,7 +191,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		wg.Wait()
 	}
-	trace.CurrentSpan(ctx).SetAttribute(key.Int("result", ret))
+	trace.SpanFromContext(ctx).SetAttribute(key.Int("result", ret))
 	fmt.Fprintf(w, "%d", ret)
 }
 
