@@ -17,9 +17,6 @@ import (
 	// "github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	"go.opentelemetry.io/otel/exporters/trace/stackdriver"
-	"go.opentelemetry.io/otel/sdk/metric/batcher/ungrouped"
-	"go.opentelemetry.io/otel/sdk/metric/controller/push"
-	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc/codes"
 
@@ -36,16 +33,11 @@ import (
 func main() {
 	serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
-	selector := simple.NewWithExactMeasure()
-	exporter, err := mout.New()
-	if err != nil {
-		log.Panicf("failed to initialize metric stdout exporter %v", err)
-	}
-	batcher := ungrouped.New(selector, false)
-	pusher := push.New(batcher, exporter, 60*time.Second)
-	pusher.Start()
-	global.SetMeterProvider(pusher)
-	defer pusher.Stop()
+	pusher, err := mout.InstallNewPipeline(mout.Config{
+		Quantiles:   []float64{0.5, 0.9, 0.99},
+		PrettyPrint: false,
+	})
+  defer pusher.Stop()
 
 	// stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
@@ -125,7 +117,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	tr := global.TraceProvider().GetTracer("fibHandler")
+	tr := global.TraceProvider().Tracer("fibHandler")
 	var err error
 	var i int
 	if len(req.URL.Query()["i"]) != 1 {
@@ -199,7 +191,7 @@ func updateDiskMetrics(ctx context.Context) {
 	appKey := key.New("glitch.com/app")                // The Glitch app name.
 	containerKey := key.New("glitch.com/container_id") // The Glitch container id.
 
-	meter := global.MeterProvider().GetMeter("container")
+	meter := global.MeterProvider().Meter("container")
 	mem := meter.NewInt64Gauge("mem_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of memory used."),
@@ -241,7 +233,7 @@ func updateDiskMetrics(ctx context.Context) {
 }
 
 func dbHandler(ctx context.Context, color string) int {
-	tr := global.TraceProvider().GetTracer("dbHandler")
+	tr := global.TraceProvider().Tracer("dbHandler")
 	ctx, span := tr.Start(ctx, "database")
 	defer span.End()
 
