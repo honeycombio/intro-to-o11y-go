@@ -3,7 +3,6 @@
 set -e
 
 export GOPATH=$PWD
-export GO111MODULE=on
 if [ ! -d /tmp/go ]; then
   cd /tmp
   if [ ! -f /tmp/go1.14.linux-amd64.tar.gz ]; then
