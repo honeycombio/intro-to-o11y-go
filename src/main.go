@@ -48,12 +48,12 @@ func main() {
 	// honeycomb exporter
 	apikey, _ := os.LookupEnv("HNY_KEY")
 	dataset, _ := os.LookupEnv("HNY_DATASET")
-	hny, err := honeycomb.NewExporter(honeycomb.Config{
-		ApiKey:      apikey,
-		Dataset:     dataset,
-		Debug:       false,
-		ServiceName: serviceName,
-	})
+	hny, err := honeycomb.NewExporter(
+		honeycomb.Config{
+			APIKey: apikey,
+		},
+		honeycomb.TargetingDataset(dataset),
+		honeycomb.WithServiceName(serviceName))
 	if err != nil {
 		log.Fatal(err)
 	}
