@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/otel/api/key"
 	"go.opentelemetry.io/otel/api/metric"
 	"go.opentelemetry.io/otel/api/trace"
+  "go.opentelemetry.io/otel/exporters/metric/prometheus"
 	mout "go.opentelemetry.io/otel/exporters/metric/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/stdout"
 	"go.opentelemetry.io/otel/plugin/httptrace"
@@ -39,6 +40,12 @@ func main() {
 	})
 	defer pusher.Stop()
 
+	prom, metricsHandler, err := prometheus.InstallNewPipeline(prometheus.Config{
+		DefaultSummaryQuantiles: []float64{0.5, 0.9, 0.99},
+	})
+	defer prom.Stop()
+
+  
 	// stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
 	if err != nil {
@@ -96,6 +103,7 @@ func main() {
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci", othttp.WithSpanOptions(trace.WithNewRoot())))
 	mux.Handle("/fibinternal", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
+  mux.Handle("/metrics", metricsHandler)
 	os.Stderr.WriteString("Initializing the server...\n")
 
 	go updateDiskMetrics(context.Background())
