@@ -25,7 +25,7 @@ import (
 	"go.opentelemetry.io/otel/api/metric"
 	"go.opentelemetry.io/otel/api/trace"
   "go.opentelemetry.io/otel/exporters/metric/prometheus"
-	mout "go.opentelemetry.io/otel/exporters/metric/stdout"
+	//mout "go.opentelemetry.io/otel/exporters/metric/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/stdout"
 	"go.opentelemetry.io/otel/plugin/httptrace"
 	"go.opentelemetry.io/otel/plugin/othttp"
@@ -34,11 +34,11 @@ import (
 func main() {
 	serviceName, _ := os.LookupEnv("PROJECT_NAME")
 
-	pusher, err := mout.InstallNewPipeline(mout.Config{
-		Quantiles:   []float64{0.5, 0.9, 0.99},
-		PrettyPrint: false,
-	})
-	defer pusher.Stop()
+	//pusher, err := mout.InstallNewPipeline(mout.Config{
+	//	Quantiles:   []float64{0.5, 0.9, 0.99},
+	//	PrettyPrint: false,
+	//})
+	//defer pusher.Stop()
 
 	prom, metricsHandler, err := prometheus.InstallNewPipeline(prometheus.Config{
 		DefaultSummaryQuantiles: []float64{0.5, 0.9, 0.99},
@@ -60,7 +60,8 @@ func main() {
 			APIKey: apikey,
 		},
 		honeycomb.TargetingDataset(dataset),
-		honeycomb.WithServiceName(serviceName))
+		honeycomb.WithServiceName(serviceName),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
