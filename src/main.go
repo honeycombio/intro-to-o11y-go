@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
-	// "github.com/lightstep/opentelemetry-exporter-go/lightstep"
+	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	"go.opentelemetry.io/otel/exporters/trace/stackdriver"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -86,10 +86,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//lExporter, err := lightstep.NewExporter(
-	//	lightstep.WithAccessToken(os.Getenv("LS_KEY")),
-	//	lightstep.WithServiceName(serviceName))
-	//defer lExporter.Close()
+	lExporter, err := lightstep.NewExporter(
+		lightstep.WithAccessToken(os.Getenv("LS_KEY")),
+		lightstep.WithServiceName(serviceName))
+	defer lExporter.Close()
 
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),

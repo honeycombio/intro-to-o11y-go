@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/honeycombio/opentelemetry-exporter-go v0.2.3
+	github.com/lightstep/opentelemetry-exporter-go v0.1.5 // indirect
 	go.opentelemetry.io/otel v0.2.3
 	go.opentelemetry.io/otel/exporters/metric/prometheus v0.2.3
 	go.opentelemetry.io/otel/exporters/trace/jaeger v0.2.3
