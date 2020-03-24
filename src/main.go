@@ -86,6 +86,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+  // Lightstep
 	lExporter, err := lightstep.NewExporter(
 		lightstep.WithAccessToken(os.Getenv("LS_KEY")),
 		lightstep.WithServiceName(serviceName))
@@ -93,7 +94,7 @@ func main() {
 
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
-		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter)) //, sdktrace.WithSyncer(lExporter))
+		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter), sdktrace.WithSyncer(lExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
