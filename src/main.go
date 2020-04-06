@@ -16,7 +16,7 @@ import (
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
-	"go.opentelemetry.io/otel/exporters/trace/stackdriver"
+	stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc/codes"
 
