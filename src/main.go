@@ -13,18 +13,19 @@ import (
 	"syscall"
 	"time"
 
+	stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
-	stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc/codes"
 
+	"go.opentelemetry.io/otel/api/core"
 	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/api/key"
 	"go.opentelemetry.io/otel/api/metric"
 	"go.opentelemetry.io/otel/api/trace"
-  "go.opentelemetry.io/otel/exporters/metric/prometheus"
+	"go.opentelemetry.io/otel/exporters/metric/prometheus"
 	//mout "go.opentelemetry.io/otel/exporters/metric/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/stdout"
 	"go.opentelemetry.io/otel/plugin/httptrace"
@@ -45,7 +46,6 @@ func main() {
 	})
 	defer prom.Stop()
 
-  
 	// stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
 	if err != nil {
@@ -86,7 +86,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-  // Lightstep
+	// Lightstep
 	lExporter, err := lightstep.NewExporter(
 		lightstep.WithAccessToken(os.Getenv("LS_KEY")),
 		lightstep.WithServiceName(serviceName))
@@ -105,7 +105,7 @@ func main() {
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci", othttp.WithSpanOptions(trace.WithNewRoot())))
 	mux.Handle("/fibinternal", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
-  mux.Handle("/metrics", metricsHandler)
+	mux.Handle("/metrics", metricsHandler)
 	os.Stderr.WriteString("Initializing the server...\n")
 
 	go updateDiskMetrics(context.Background())
@@ -171,7 +171,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					}
 					resp, err := strconv.Atoi(string(body))
 					if err != nil {
-            trace.SpanFromContext(ictx).SetStatus(codes.InvalidArgument, "failure parsing")
+						trace.SpanFromContext(ictx).SetStatus(codes.InvalidArgument, "failure parsing")
 						return err
 					}
 					trace.SpanFromContext(ictx).SetAttributes(key.Int("result", resp))
@@ -201,19 +201,19 @@ func updateDiskMetrics(ctx context.Context) {
 	containerKey := key.New("glitch.com/container_id") // The Glitch container id.
 
 	meter := global.MeterProvider().Meter("container")
-	mem := meter.NewInt64Gauge("mem_usage",
+	mem, _ := meter.NewInt64Measure("mem_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of memory used."),
 	)
-	used := meter.NewFloat64Gauge("disk_usage",
+	used, _ := meter.NewFloat64Measure("disk_usage",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
 	)
-	quota := meter.NewFloat64Gauge("disk_quota",
+	quota, _ := meter.NewFloat64Measure("disk_quota",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk quota available."),
 	)
-	goroutines := meter.NewInt64Gauge("num_goroutines",
+	goroutines, _ := meter.NewInt64Measure("num_goroutines",
 		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of goroutines running."),
 	)
@@ -229,9 +229,9 @@ func updateDiskMetrics(ctx context.Context) {
 		all := float64(stat.Blocks) * float64(stat.Bsize)
 		free := float64(stat.Bfree) * float64(stat.Bsize)
 
-		meter.RecordBatch(ctx, meter.Labels(
+		meter.RecordBatch(ctx, []core.KeyValue{
 			appKey.String(os.Getenv("PROJECT_DOMAIN")),
-			containerKey.String(os.Getenv("HOSTNAME"))),
+			containerKey.String(os.Getenv("HOSTNAME"))},
 			used.Measurement(all-free),
 			quota.Measurement(all),
 			mem.Measurement(int64(m.Sys)),
