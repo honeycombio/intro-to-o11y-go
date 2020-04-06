@@ -3,7 +3,6 @@ module github.com/honeycombio/opentelemetry-workshop
 go 1.13
 
 require (
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go v0.1.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v0.1.0
 	github.com/honeycombio/opentelemetry-exporter-go v0.4.0
 	github.com/lightstep/opentelemetry-exporter-go v0.1.5

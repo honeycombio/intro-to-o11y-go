@@ -76,7 +76,7 @@ func main() {
 
 	// jaeger exporter
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
-	jExporter, err := jaeger.NewExporter(
+	jExporter, err := jaeger.NewRawExporter(
 		jaeger.WithCollectorEndpoint(jaegerEndpoint),
 		jaeger.WithProcess(jaeger.Process{
 			ServiceName: serviceName,
@@ -171,7 +171,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					}
 					resp, err := strconv.Atoi(string(body))
 					if err != nil {
-            trace.SpanFromContext(ictx).SetStatus(codes.OK, "failure parsing")
+            trace.SpanFromContext(ictx).SetStatus(codes.InvalidArgument, "failure parsing")
 						return err
 					}
 					trace.SpanFromContext(ictx).SetAttributes(key.Int("result", resp))
