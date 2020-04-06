@@ -171,9 +171,9 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					}
 					resp, err := strconv.Atoi(string(body))
 					if err != nil {
+            trace.SpanFromContext(ictx).SetStatus(codes.OK, "failure parsing")
 						return err
 					}
-					trace.SpanFromContext(ictx).SetStatus(codes.OK)
 					trace.SpanFromContext(ictx).SetAttributes(key.Int("result", resp))
 					mtx.Lock()
 					defer mtx.Unlock()
