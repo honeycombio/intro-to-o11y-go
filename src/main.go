@@ -203,19 +203,15 @@ func updateDiskMetrics(ctx context.Context) {
 
 	meter := global.MeterProvider().Meter("container")
 	mem, _ := meter.NewInt64Measure("mem_usage",
-		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of memory used."),
 	)
 	used, _ := meter.NewFloat64Measure("disk_usage",
-		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk used."),
 	)
 	quota, _ := meter.NewFloat64Measure("disk_quota",
-		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of disk quota available."),
 	)
 	goroutines, _ := meter.NewInt64Measure("num_goroutines",
-		metric.WithKeys(appKey, containerKey),
 		metric.WithDescription("Amount of goroutines running."),
 	)
 
