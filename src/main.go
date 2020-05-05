@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
+	// stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
@@ -69,10 +69,10 @@ func main() {
 
 	// Stackdriver exporter
 	// Crecential file specified in GOOGLE_APPLICATION_CREDENTIALS in .env is automatically detected.
-	sdExporter, err := stackdriver.NewExporter()
-	if err != nil {
-		log.Fatal(err)
-	}
+	//sdExporter, err := stackdriver.NewExporter()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	// jaeger exporter
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
@@ -94,7 +94,8 @@ func main() {
 
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
-		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(sdExporter), sdktrace.WithSyncer(lExporter))
+		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(lExporter))
+  // sdktrace.WithSyncer(sdExporter), 
 	if err != nil {
 		log.Fatal(err)
 	}
