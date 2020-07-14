@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	// stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
+	stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
@@ -44,7 +44,7 @@ func main() {
 		DefaultSummaryQuantiles: []float64{0.5, 0.9, 0.99},
 	})
 
-  // stdout exporter
+	// stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
 	if err != nil {
 		log.Fatal(err)
@@ -66,11 +66,11 @@ func main() {
 	defer hny.Close()
 
 	// Stackdriver exporter
-	// Crecential file specified in GOOGLE_APPLICATION_CREDENTIALS in .env is automatically detected.
-	//sdExporter, err := stackdriver.NewExporter()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
+	// Credential file specified in GOOGLE_APPLICATION_CREDENTIALS in .env is automatically detected.
+	sdExporter, err := stackdriver.NewExporter()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// jaeger exporter
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
@@ -92,8 +92,7 @@ func main() {
 
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
-		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(lExporter))
-  // sdktrace.WithSyncer(sdExporter), 
+		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(lExporter), sdktrace.WithSyncer(sdExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -200,16 +199,16 @@ func updateDiskMetrics(ctx context.Context) {
 	containerKey := kv.Key("glitch.com/container_id") // The Glitch container id.
 
 	meter := global.MeterProvider().Meter("container")
-	mem, _ := meter.NewInt64Measure("mem_usage",
+	mem, _ := meter.NewInt64ValueRecorder("mem_usage",
 		metric.WithDescription("Amount of memory used."),
 	)
-	used, _ := meter.NewFloat64Measure("disk_usage",
+	used, _ := meter.NewFloat64ValueRecorder("disk_usage",
 		metric.WithDescription("Amount of disk used."),
 	)
-	quota, _ := meter.NewFloat64Measure("disk_quota",
+	quota, _ := meter.NewFloat64ValueRecorder("disk_quota",
 		metric.WithDescription("Amount of disk quota available."),
 	)
-	goroutines, _ := meter.NewInt64Measure("num_goroutines",
+	goroutines, _ := meter.NewInt64ValueRecorder("num_goroutines",
 		metric.WithDescription("Amount of goroutines running."),
 	)
 
