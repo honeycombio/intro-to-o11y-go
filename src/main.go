@@ -20,16 +20,15 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc/codes"
 
-	"go.opentelemetry.io/otel/api/core"
 	"go.opentelemetry.io/otel/api/global"
-	"go.opentelemetry.io/otel/api/key"
+	"go.opentelemetry.io/otel/api/kv"
 	"go.opentelemetry.io/otel/api/metric"
 	"go.opentelemetry.io/otel/api/trace"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
 	//mout "go.opentelemetry.io/otel/exporters/metric/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/stdout"
-	"go.opentelemetry.io/otel/plugin/httptrace"
-	"go.opentelemetry.io/otel/plugin/othttp"
+	"go.opentelemetry.io/otel/instrumentation/httptrace"
+	"go.opentelemetry.io/otel/instrumentation/othttp"
 )
 
 func main() {
@@ -41,12 +40,11 @@ func main() {
 	//})
 	//defer pusher.Stop()
 
-	prom, metricsHandler, err := prometheus.InstallNewPipeline(prometheus.Config{
+	prom, err := prometheus.InstallNewPipeline(prometheus.Config{
 		DefaultSummaryQuantiles: []float64{0.5, 0.9, 0.99},
 	})
-	defer prom.Stop()
 
-	// stdout exporter
+  // stdout exporter
 	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
 	if err != nil {
 		log.Fatal(err)
@@ -106,7 +104,7 @@ func main() {
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci", othttp.WithPublicEndpoint()))
 	mux.Handle("/fibinternal", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
-	mux.Handle("/metrics", metricsHandler)
+	mux.Handle("/metrics", prom)
 	os.Stderr.WriteString("Initializing the server...\n")
 
 	go updateDiskMetrics(context.Background())
@@ -140,7 +138,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(503)
 		return
 	}
-	trace.SpanFromContext(ctx).SetAttributes(key.Int("parameter", i))
+	trace.SpanFromContext(ctx).SetAttributes(kv.Int("parameter", i))
 	ret := 0
 	failed := false
 
@@ -156,8 +154,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 			go func(n int) {
 				err := tr.WithSpan(ctx, "fibClient", func(ictx context.Context) error {
 					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?i=%d", n)
-					trace.SpanFromContext(ictx).SetAttributes(key.String("url", url))
-					trace.SpanFromContext(ictx).AddEvent(ictx, "Fib loop count", key.Int("fib-loop", n))
+					trace.SpanFromContext(ictx).SetAttributes(kv.String("url", url))
+					trace.SpanFromContext(ictx).AddEvent(ictx, "Fib loop count", kv.Int("fib-loop", n))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
 					ictx, req = httptrace.W3C(ictx, req)
 					httptrace.Inject(ictx, req)
@@ -175,7 +173,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 						trace.SpanFromContext(ictx).SetStatus(codes.InvalidArgument, "failure parsing")
 						return err
 					}
-					trace.SpanFromContext(ictx).SetAttributes(key.Int("result", resp))
+					trace.SpanFromContext(ictx).SetAttributes(kv.Int("result", resp))
 					mtx.Lock()
 					defer mtx.Unlock()
 					ret += resp
@@ -193,13 +191,13 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		wg.Wait()
 	}
-	trace.SpanFromContext(ctx).SetAttributes(key.Int("result", ret))
+	trace.SpanFromContext(ctx).SetAttributes(kv.Int("result", ret))
 	fmt.Fprintf(w, "%d", ret)
 }
 
 func updateDiskMetrics(ctx context.Context) {
-	appKey := key.New("glitch.com/app")                // The Glitch app name.
-	containerKey := key.New("glitch.com/container_id") // The Glitch container id.
+	appKey := kv.Key("glitch.com/app")                // The Glitch app name.
+	containerKey := kv.Key("glitch.com/container_id") // The Glitch container id.
 
 	meter := global.MeterProvider().Meter("container")
 	mem, _ := meter.NewInt64Measure("mem_usage",
@@ -226,7 +224,7 @@ func updateDiskMetrics(ctx context.Context) {
 		all := float64(stat.Blocks) * float64(stat.Bsize)
 		free := float64(stat.Bfree) * float64(stat.Bsize)
 
-		meter.RecordBatch(ctx, []core.KeyValue{
+		meter.RecordBatch(ctx, []kv.KeyValue{
 			appKey.String(os.Getenv("PROJECT_DOMAIN")),
 			containerKey.String(os.Getenv("HOSTNAME"))},
 			used.Measurement(all-free),
