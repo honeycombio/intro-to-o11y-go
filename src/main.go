@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
+	// stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
@@ -25,8 +25,7 @@ import (
 	"go.opentelemetry.io/otel/api/metric"
 	"go.opentelemetry.io/otel/api/trace"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
-	//mout "go.opentelemetry.io/otel/exporters/metric/stdout"
-	"go.opentelemetry.io/otel/exporters/trace/stdout"
+	"go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/instrumentation/httptrace"
 	"go.opentelemetry.io/otel/instrumentation/othttp"
 )
@@ -67,7 +66,7 @@ func main() {
 
 	// Stackdriver exporter
 	// Credential file specified in GOOGLE_APPLICATION_CREDENTIALS in .env is automatically detected.
-	sdExporter, err := stackdriver.NewExporter()
+	// sdExporter, err := stackdriver.NewExporter()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -92,7 +91,7 @@ func main() {
 
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
-		sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(lExporter), sdktrace.WithSyncer(sdExporter))
+                                  sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(lExporter)) // , sdktrace.WithSyncer(sdExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
