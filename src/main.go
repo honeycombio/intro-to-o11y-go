@@ -44,7 +44,7 @@ func main() {
 	})
 
 	// stdout exporter
-	std, err := stdout.NewExporter(stdout.Options{PrettyPrint: true})
+  std, err := stdout.NewExporter(stdout.WithPrettyPrint())
 	if err != nil {
 		log.Fatal(err)
 	}
