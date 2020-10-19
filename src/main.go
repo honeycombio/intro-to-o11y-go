@@ -17,16 +17,17 @@ import (
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"google.golang.org/grpc/codes"
 
 	"go.opentelemetry.io/otel/api/global"
-	"go.opentelemetry.io/otel/api/kv"
 	"go.opentelemetry.io/otel/api/metric"
 	"go.opentelemetry.io/otel/api/trace"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
 	"go.opentelemetry.io/otel/exporters/stdout"
-	"go.opentelemetry.io/contrib/instrumentation/httptrace"
-	"go.opentelemetry.io/contrib/instrumentation/othttp"
+	"go.opentelemetry.io/otel/label"
+
+  "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 )
 
 func main() {
@@ -61,7 +62,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer hny.Close()
+	defer hny.Shutdown()
 
 	// Stackdriver exporter
 	// Credential file specified in GOOGLE_APPLICATION_CREDENTIALS in .env is automatically detected.
@@ -91,10 +92,10 @@ func main() {
 	global.SetTraceProvider(tp)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", othttp.NewHandler(http.HandlerFunc(rootHandler), "root", othttp.WithPublicEndpoint()))
+	mux.Handle("/", otelhttp.NewHandler(http.HandlerFunc(rootHandler), "root", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
-	mux.Handle("/fib", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci", othttp.WithPublicEndpoint()))
-	mux.Handle("/fibinternal", othttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
+	mux.Handle("/fib", otelhttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci", otelhttp.WithPublicEndpoint()))
+	mux.Handle("/fibinternal", otelhttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
 	mux.Handle("/metrics", prom)
 	os.Stderr.WriteString("Initializing the server...\n")
 
@@ -129,7 +130,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(503)
 		return
 	}
-	trace.SpanFromContext(ctx).SetAttributes(kv.Int("parameter", i))
+	trace.SpanFromContext(ctx).SetAttributes(label.Int("parameter", i))
 	ret := 0
 	failed := false
 
@@ -145,11 +146,11 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 			go func(n int) {
 				err := tr.WithSpan(ctx, "fibClient", func(ictx context.Context) error {
 					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?i=%d", n)
-					trace.SpanFromContext(ictx).SetAttributes(kv.String("url", url))
-					trace.SpanFromContext(ictx).AddEvent(ictx, "Fib loop count", kv.Int("fib-loop", n))
+					trace.SpanFromContext(ictx).SetAttributes(label.String("url", url))
+					trace.SpanFromContext(ictx).AddEvent(ictx, "Fib loop count", label.Int("fib-loop", n))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
-					ictx, req = httptrace.W3C(ictx, req)
-					httptrace.Inject(ictx, req)
+					ictx, req = otelhttptrace.W3C(ictx, req)
+					otelhttptrace.Inject(ictx, req)
 					res, err := client.Do(req)
 					if err != nil {
 						return err
@@ -164,7 +165,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 						trace.SpanFromContext(ictx).SetStatus(codes.InvalidArgument, "failure parsing")
 						return err
 					}
-					trace.SpanFromContext(ictx).SetAttributes(kv.Int("result", resp))
+					trace.SpanFromContext(ictx).SetAttributes(label.Int("result", resp))
 					mtx.Lock()
 					defer mtx.Unlock()
 					ret += resp
@@ -182,13 +183,13 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		wg.Wait()
 	}
-	trace.SpanFromContext(ctx).SetAttributes(kv.Int("result", ret))
+	trace.SpanFromContext(ctx).SetAttributes(label.Int("result", ret))
 	fmt.Fprintf(w, "%d", ret)
 }
 
 func updateDiskMetrics(ctx context.Context) {
-	appKey := kv.Key("glitch.com/app")                // The Glitch app name.
-	containerKey := kv.Key("glitch.com/container_id") // The Glitch container id.
+	appKey := label.Key("glitch.com/app")                // The Glitch app name.
+	containerKey := label.Key("glitch.com/container_id") // The Glitch container id.
 
 	meter := global.MeterProvider().Meter("container")
 	mem, _ := meter.NewInt64ValueRecorder("mem_usage",
@@ -215,7 +216,7 @@ func updateDiskMetrics(ctx context.Context) {
 		all := float64(stat.Blocks) * float64(stat.Bsize)
 		free := float64(stat.Bfree) * float64(stat.Bsize)
 
-		meter.RecordBatch(ctx, []kv.KeyValue{
+		meter.RecordBatch(ctx, []label.KeyValue{
 			appKey.String(os.Getenv("PROJECT_DOMAIN")),
 			containerKey.String(os.Getenv("HOSTNAME"))},
 			used.Measurement(all-free),
