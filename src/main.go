@@ -15,7 +15,6 @@ import (
 
 	// stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
-	"github.com/lightstep/opentelemetry-exporter-go/lightstep"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc/codes"
@@ -26,8 +25,8 @@ import (
 	"go.opentelemetry.io/otel/api/trace"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
 	"go.opentelemetry.io/otel/exporters/stdout"
-	"go.opentelemetry.io/otel/instrumentation/httptrace"
-	"go.opentelemetry.io/otel/instrumentation/othttp"
+	"go.opentelemetry.io/contrib/instrumentation/httptrace"
+	"go.opentelemetry.io/contrib/instrumentation/othttp"
 )
 
 func main() {
@@ -83,15 +82,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Lightstep
-	lExporter, err := lightstep.NewExporter(
-		lightstep.WithAccessToken(os.Getenv("LS_KEY")),
-		lightstep.WithServiceName(serviceName))
-	defer lExporter.Close()
-
 	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
-                                  sdktrace.WithSyncer(jExporter), sdktrace.WithSyncer(lExporter)) // , sdktrace.WithSyncer(sdExporter))
+		sdktrace.WithSyncer(jExporter)) // , sdktrace.WithSyncer(sdExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
