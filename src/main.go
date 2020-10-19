@@ -26,8 +26,8 @@ import (
 	"go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/label"
 
-  "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func main() {
@@ -44,7 +44,7 @@ func main() {
 	})
 
 	// stdout exporter
-  std, err := stdout.NewExporter(stdout.WithPrettyPrint())
+	std, err := stdout.NewExporter(stdout.WithPrettyPrint())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer hny.Shutdown()
+	defer hny.Shutdown(context.Background())
 
 	// Stackdriver exporter
 	// Credential file specified in GOOGLE_APPLICATION_CREDENTIALS in .env is automatically detected.
@@ -83,13 +83,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	tp, err := sdktrace.NewProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
+	tp := sdktrace.NewTracerProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
 		sdktrace.WithSyncer(jExporter)) // , sdktrace.WithSyncer(sdExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
-	global.SetTraceProvider(tp)
+	global.SetTracerProvider(tp)
 
 	mux := http.NewServeMux()
 	mux.Handle("/", otelhttp.NewHandler(http.HandlerFunc(rootHandler), "root", otelhttp.WithPublicEndpoint()))
@@ -117,7 +117,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	tr := global.TraceProvider().Tracer("fibHandler")
+	tr := global.TracerProvider().Tracer("fibHandler")
 	var err error
 	var i int
 	if len(req.URL.Query()["i"]) != 1 {
@@ -144,7 +144,9 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		for offset := 1; offset < 3; offset++ {
 			wg.Add(1)
 			go func(n int) {
-				err := tr.WithSpan(ctx, "fibClient", func(ictx context.Context) error {
+				err := func() error {
+					ictx, sp := tr.Start(ctx, "fibClient")
+					defer sp.End()
 					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?i=%d", n)
 					trace.SpanFromContext(ictx).SetAttributes(label.String("url", url))
 					trace.SpanFromContext(ictx).AddEvent(ictx, "Fib loop count", label.Int("fib-loop", n))
@@ -162,7 +164,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					}
 					resp, err := strconv.Atoi(string(body))
 					if err != nil {
-						trace.SpanFromContext(ictx).SetStatus(codes.InvalidArgument, "failure parsing")
+						trace.SpanFromContext(ictx).SetStatus(codes.Error, "failure parsing")
 						return err
 					}
 					trace.SpanFromContext(ictx).SetAttributes(label.Int("result", resp))
@@ -170,7 +172,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					defer mtx.Unlock()
 					ret += resp
 					return err
-				})
+				}()
 				if err != nil {
 					if !failed {
 						w.WriteHeader(503)
@@ -229,7 +231,7 @@ func updateDiskMetrics(ctx context.Context) {
 }
 
 func dbHandler(ctx context.Context, color string) int {
-	tr := global.TraceProvider().Tracer("dbHandler")
+	tr := global.TracerProvider().Tracer("dbHandler")
 	ctx, span := tr.Start(ctx, "database")
 	defer span.End()
 
