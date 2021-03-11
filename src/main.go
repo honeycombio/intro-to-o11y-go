@@ -17,15 +17,14 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/global"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
   "go.opentelemetry.io/otel/exporters/otlp"
 	"go.opentelemetry.io/otel/exporters/stdout"
-	"go.opentelemetry.io/otel/label"
-	"go.opentelemetry.io/otel/propagators"
+	"go.opentelemetry.io/otel/propagation"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -83,8 +82,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	global.SetTracerProvider(tp)
-	global.SetTextMapPropagator(otel.NewCompositeTextMapPropagator(propagators.TraceContext{}, propagators.Baggage{}))
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(otel.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
 	mux := http.NewServeMux()
 	mux.Handle("/", otelhttp.NewHandler(http.HandlerFunc(rootHandler), "root", otelhttp.WithPublicEndpoint()))
@@ -112,7 +111,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	tr := global.TracerProvider().Tracer("fibHandler")
+	tr := otel.TracerProvider().Tracer("fibHandler")
 	var err error
 	var i int
 	if len(req.URL.Query()["i"]) != 1 {
@@ -125,7 +124,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(503)
 		return
 	}
-	trace.SpanFromContext(ctx).SetAttributes(label.Int("parameter", i))
+	trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter", i))
 	ret := 0
 	failed := false
 
@@ -143,8 +142,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					ictx, sp := tr.Start(ctx, "fibClient")
 					defer sp.End()
 					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?i=%d", n)
-					trace.SpanFromContext(ictx).SetAttributes(label.String("url", url))
-					trace.SpanFromContext(ictx).AddEvent(ictx, "Fib loop count", label.Int("fib-loop", n))
+					trace.SpanFromContext(ictx).SetAttributes(attribute.String("url", url))
+					trace.SpanFromContext(ictx).AddEvent(ictx, "Fib loop count", attribute.Int("fib-loop", n))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
 					ictx, req = otelhttptrace.W3C(ictx, req)
 					otelhttptrace.Inject(ictx, req)
@@ -162,7 +161,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 						trace.SpanFromContext(ictx).SetStatus(codes.Error, "failure parsing")
 						return err
 					}
-					trace.SpanFromContext(ictx).SetAttributes(label.Int("result", resp))
+					trace.SpanFromContext(ictx).SetAttributes(attribute.Int("result", resp))
 					mtx.Lock()
 					defer mtx.Unlock()
 					ret += resp
@@ -180,15 +179,15 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		wg.Wait()
 	}
-	trace.SpanFromContext(ctx).SetAttributes(label.Int("result", ret))
+	trace.SpanFromContext(ctx).SetAttributes(attribute.Int("result", ret))
 	fmt.Fprintf(w, "%d", ret)
 }
 
 func updateDiskMetrics(ctx context.Context) {
-	appKey := label.Key("glitch.com/app")                // The Glitch app name.
-	containerKey := label.Key("glitch.com/container_id") // The Glitch container id.
+	appKey := attribute.Key("glitch.com/app")                // The Glitch app name.
+	containerKey := attribute.Key("glitch.com/container_id") // The Glitch container id.
 
-	meter := global.MeterProvider().Meter("container")
+	meter := otel.MeterProvider().Meter("container")
 	mem, _ := meter.NewInt64ValueRecorder("mem_usage",
 		metric.WithDescription("Amount of memory used."),
 	)
@@ -213,7 +212,7 @@ func updateDiskMetrics(ctx context.Context) {
 		all := float64(stat.Blocks) * float64(stat.Bsize)
 		free := float64(stat.Bfree) * float64(stat.Bsize)
 
-		meter.RecordBatch(ctx, []label.KeyValue{
+		meter.RecordBatch(ctx, []attribute.KeyValue{
 			appKey.String(os.Getenv("PROJECT_DOMAIN")),
 			containerKey.String(os.Getenv("HOSTNAME"))},
 			used.Measurement(all-free),
@@ -226,7 +225,7 @@ func updateDiskMetrics(ctx context.Context) {
 }
 
 func dbHandler(ctx context.Context, color string) int {
-	tr := global.TracerProvider().Tracer("dbHandler")
+	tr := otel.TracerProvider().Tracer("dbHandler")
 	ctx, span := tr.Start(ctx, "database")
 	defer span.End()
 
