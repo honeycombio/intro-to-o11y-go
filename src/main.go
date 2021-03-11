@@ -98,7 +98,7 @@ func main() {
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	trace.SpanFromContext(ctx).AddEvent(ctx, "annotation within span")
+	trace.SpanFromContext(ctx).AddEvent("annotation within span")
 	_ = dbHandler(ctx, "foo")
 
 	fmt.Fprintf(w, "Click [Tools] > [Logs] to see spans!")
@@ -138,7 +138,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					defer sp.End()
 					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?i=%d", n)
 					trace.SpanFromContext(ictx).SetAttributes(attribute.String("url", url))
-					trace.SpanFromContext(ictx).AddEvent(ictx, "Fib loop count", attribute.Int("fib-loop", n))
+					trace.SpanFromContext(ictx).AddEvent("Fib loop count", attribute.Int("fib-loop", n))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
 					ictx, req = otelhttptrace.W3C(ictx, req)
 					otelhttptrace.Inject(ictx, req)
