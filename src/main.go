@@ -13,8 +13,6 @@ import (
 	"syscall"
 	"time"
 
-	// stackdriver "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
-	"github.com/honeycombio/opentelemetry-exporter-go/honeycomb"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
