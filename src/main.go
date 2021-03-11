@@ -19,6 +19,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+  mglobal "go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
@@ -77,7 +78,7 @@ func main() {
 		log.Fatal(err)
 	}
 	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(otel.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
 	mux := http.NewServeMux()
 	mux.Handle("/", otelhttp.NewHandler(http.HandlerFunc(rootHandler), "root", otelhttp.WithPublicEndpoint()))
@@ -105,7 +106,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	tr := otel.TracerProvider().Tracer("fibHandler")
+	tr := otel.Tracer("fibHandler")
 	var err error
 	var i int
 	if len(req.URL.Query()["i"]) != 1 {
@@ -181,7 +182,7 @@ func updateDiskMetrics(ctx context.Context) {
 	appKey := attribute.Key("glitch.com/app")                // The Glitch app name.
 	containerKey := attribute.Key("glitch.com/container_id") // The Glitch container id.
 
-	meter := otel.MeterProvider().Meter("container")
+	meter := mglobal.Meter("container")
 	mem, _ := meter.NewInt64ValueRecorder("mem_usage",
 		metric.WithDescription("Amount of memory used."),
 	)
@@ -219,7 +220,7 @@ func updateDiskMetrics(ctx context.Context) {
 }
 
 func dbHandler(ctx context.Context, color string) int {
-	tr := otel.TracerProvider().Tracer("dbHandler")
+	tr := otel.Tracer("dbHandler")
 	ctx, span := tr.Start(ctx, "database")
 	defer span.End()
 
