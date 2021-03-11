@@ -13,21 +13,21 @@ import (
 	"syscall"
 	"time"
 
-  "google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
-  mglobal "go.opentelemetry.io/otel/metric/global"
-	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
-  "go.opentelemetry.io/otel/exporters/otlp"
-  "go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
 	"go.opentelemetry.io/otel/exporters/stdout"
-  "go.opentelemetry.io/otel/exporters/trace/jaeger"
+	"go.opentelemetry.io/otel/exporters/trace/jaeger"
+	"go.opentelemetry.io/otel/metric"
+	mglobal "go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -52,18 +52,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// honeycomb exporter
+	// honeycomb OTLP gRPC exporter
 	apikey, _ := os.LookupEnv("HNY_KEY")
 	dataset, _ := os.LookupEnv("HNY_DATASET")
 	driver := otlpgrpc.NewDriver(
-    otlpgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")),
-    otlpgrpc.WithEndpoint("api.honeycomb.io:443"),
-    otlpgrpc.WithHeaders(map[string]string{
-      "x-honeycomb-team":    apikey,
-      "x-honeycomb-dataset": dataset,
-    }),
-  )
-  hny, err := otlp.NewExporter(context.Background(), driver)
+		otlpgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")),
+		otlpgrpc.WithEndpoint("api.honeycomb.io:443"),
+		otlpgrpc.WithHeaders(map[string]string{
+			"x-honeycomb-team":    apikey,
+			"x-honeycomb-dataset": dataset,
+		}),
+	)
+	hny, err := otlp.NewExporter(context.Background(), driver)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,9 +91,9 @@ func main() {
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
 	mux := http.NewServeMux()
-  mux.Handle("/", otelhttp.NewHandler(otelhttp.WithRouteTag("/", http.HandlerFunc(rootHandler)), "root", otelhttp.WithPublicEndpoint()))
+	mux.Handle("/", otelhttp.NewHandler(otelhttp.WithRouteTag("/", http.HandlerFunc(rootHandler)), "root", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
-  mux.Handle("/fib", otelhttp.NewHandler(otelhttp.WithRouteTag("/fib", http.HandlerFunc(fibHandler)), "fibonacci", otelhttp.WithPublicEndpoint()))
+	mux.Handle("/fib", otelhttp.NewHandler(otelhttp.WithRouteTag("/fib", http.HandlerFunc(fibHandler)), "fibonacci", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/fibinternal", otelhttp.NewHandler(otelhttp.WithRouteTag("/fibinternal", http.HandlerFunc(fibHandler)), "fibonacci"))
 	mux.Handle("/metrics", prom)
 	os.Stderr.WriteString("Initializing the server...\n")
