@@ -13,8 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"go.opentelemetry.io/otel/exporters/trace/jaeger"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+  "google.golang.org/grpc/credentials"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -24,8 +23,11 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
   "go.opentelemetry.io/otel/exporters/otlp"
+  "go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
 	"go.opentelemetry.io/otel/exporters/stdout"
+  "go.opentelemetry.io/otel/exporters/trace/jaeger"
 	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -53,7 +55,15 @@ func main() {
 	// honeycomb exporter
 	apikey, _ := os.LookupEnv("HNY_KEY")
 	dataset, _ := os.LookupEnv("HNY_DATASET")
-	hny, err := otlp.NewExporter()
+	driver := otlpgrpc.NewDriver(
+    otlpgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")),
+    otlpgrpc.WithEndpoint("api.honeycomb.io:443"),
+    otlpgrpc.WithHeaders(map[string]string{
+      "x-honeycomb-team":    apikey,
+      "x-honeycomb-dataset": dataset,
+    }),
+  )
+  hny, err := otlp.NewExporter(context.Background(), driver)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,10 +91,10 @@ func main() {
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
 	mux := http.NewServeMux()
-	mux.Handle("/", otelhttp.NewHandler(http.HandlerFunc(rootHandler), "root", otelhttp.WithPublicEndpoint()))
+  mux.Handle("/", otelhttp.NewHandler(otelhttp.WithRouteTag("/", http.HandlerFunc(rootHandler)), "root", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
-	mux.Handle("/fib", otelhttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci", otelhttp.WithPublicEndpoint()))
-	mux.Handle("/fibinternal", otelhttp.NewHandler(http.HandlerFunc(fibHandler), "fibonacci"))
+  mux.Handle("/fib", otelhttp.NewHandler(otelhttp.WithRouteTag("/fib", http.HandlerFunc(fibHandler)), "fibonacci", otelhttp.WithPublicEndpoint()))
+	mux.Handle("/fibinternal", otelhttp.NewHandler(otelhttp.WithRouteTag("/fibinternal", http.HandlerFunc(fibHandler)), "fibonacci"))
 	mux.Handle("/metrics", prom)
 	os.Stderr.WriteString("Initializing the server...\n")
 
@@ -138,7 +148,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					defer sp.End()
 					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?i=%d", n)
 					trace.SpanFromContext(ictx).SetAttributes(attribute.String("url", url))
-					trace.SpanFromContext(ictx).AddEvent("Fib loop count", attribute.Int("fib-loop", n))
+					trace.SpanFromContext(ictx).AddEvent("Fib loop count", trace.WithAttributes(attribute.Int("fib-loop", n)))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
 					ictx, req = otelhttptrace.W3C(ictx, req)
 					otelhttptrace.Inject(ictx, req)
