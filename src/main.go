@@ -17,11 +17,12 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/api/global"
-	"go.opentelemetry.io/otel/api/metric"
-	"go.opentelemetry.io/otel/api/trace"
+	"go.opentelemetry.io/otel/global"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
+  "go.opentelemetry.io/otel/exporters/otlp"
 	"go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/propagators"
@@ -52,7 +53,7 @@ func main() {
 	// honeycomb exporter
 	apikey, _ := os.LookupEnv("HNY_KEY")
 	dataset, _ := os.LookupEnv("HNY_DATASET")
-	hny, err := honeycomb.NewExporter(
+	hny, err := otlp.NewExporter(
 		honeycomb.Config{
 			APIKey: apikey,
 		},
@@ -63,13 +64,6 @@ func main() {
 		log.Fatal(err)
 	}
 	defer hny.Shutdown(context.Background())
-
-	// Stackdriver exporter
-	// Credential file specified in GOOGLE_APPLICATION_CREDENTIALS in .env is automatically detected.
-	// sdExporter, err := stackdriver.NewExporter()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// jaeger exporter
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")

@@ -7,11 +7,11 @@ require (
 	github.com/klauspost/compress v1.11.1 // indirect
 	github.com/prometheus/client_golang v1.8.0 // indirect
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.13.0
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.13.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.18.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.18.0
 	go.opentelemetry.io/otel v0.18.0
-	go.opentelemetry.io/otel/exporters/metric/prometheus v0.13.0
-	go.opentelemetry.io/otel/exporters/stdout v0.13.0
+	go.opentelemetry.io/otel/exporters/metric/prometheus v0.18.0
+	go.opentelemetry.io/otel/exporters/stdout v0.18.0
 	go.opentelemetry.io/otel/exporters/trace/jaeger v0.18.0
 	go.opentelemetry.io/otel/sdk v0.18.0
 	google.golang.org/api v0.41.0 // indirect
