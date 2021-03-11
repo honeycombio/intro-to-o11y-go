@@ -40,7 +40,7 @@ func main() {
 	//defer pusher.Stop()
 
 	prom, err := prometheus.InstallNewPipeline(prometheus.Config{
-		DefaultSummaryQuantiles: []float64{0.5, 0.9, 0.99},
+		DefaultHistogramBoundaries: []float64{0.5, 0.9, 0.99},
 	})
 
 	// stdout exporter
@@ -52,13 +52,7 @@ func main() {
 	// honeycomb exporter
 	apikey, _ := os.LookupEnv("HNY_KEY")
 	dataset, _ := os.LookupEnv("HNY_DATASET")
-	hny, err := otlp.NewExporter(
-		honeycomb.Config{
-			APIKey: apikey,
-		},
-		honeycomb.TargetingDataset(dataset),
-		honeycomb.WithServiceName(serviceName),
-	)
+	hny, err := otlp.NewExporter()
 	if err != nil {
 		log.Fatal(err)
 	}
