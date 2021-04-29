@@ -26,6 +26,8 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	mglobal "go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/semconv"
+	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 
@@ -78,7 +80,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	tp := sdktrace.Tracer(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()},
+	tp := sdktrace.NewTracerProvider(
+    sdktrace.WithSampler(sdktrace.AlwaysSample()),
+    sdktrace.WithResource(resource.NewWithAttributes(semconv.ServiceNameKey.String(serviceName))),
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
 		sdktrace.WithSyncer(jExporter)) // , sdktrace.WithSyncer(sdExporter))
 	if err != nil {
