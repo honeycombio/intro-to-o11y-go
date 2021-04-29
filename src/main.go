@@ -78,7 +78,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	tp := sdktrace.NewTracerProvider(sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
+	tp := sdktrace.Tracer(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()},
 		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
 		sdktrace.WithSyncer(jExporter)) // , sdktrace.WithSyncer(sdExporter))
 	if err != nil {
