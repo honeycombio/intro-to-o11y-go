@@ -72,10 +72,7 @@ func main() {
 	// jaeger exporter
 	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
 	jExporter, err := jaeger.NewRawExporter(
-		jaeger.WithCollectorEndpoint(jaegerEndpoint),
-		jaeger.WithProcess(jaeger.Process{
-			ServiceName: serviceName,
-		}),
+    jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(jaegerEndpoint)),
 	)
 	if err != nil {
 		log.Fatal(err)
