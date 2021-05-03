@@ -83,8 +83,8 @@ func main() {
 	tp := sdktrace.NewTracerProvider(
     sdktrace.WithSampler(sdktrace.AlwaysSample()),
     sdktrace.WithResource(resource.NewWithAttributes(semconv.ServiceNameKey.String(serviceName))),
-		sdktrace.WithSyncer(std), sdktrace.WithSyncer(hny),
-		sdktrace.WithSyncer(jExporter)) // , sdktrace.WithSyncer(sdExporter))
+		sdktrace.WithSyncer(std), sdktrace.WithBatcher(hny),
+		sdktrace.WithBatcher(jExporter)) // , sdktrace.WithBatcher(sdExporter))
 	if err != nil {
 		log.Fatal(err)
 	}
