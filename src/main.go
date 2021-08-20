@@ -120,21 +120,24 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	tr := otel.Tracer("fibHandler")
 	var err error
 	var i int
-	if len(req.URL.Query()["i"]) != 1 {
-		err = fmt.Errorf("Wrong number of arguments.")
+  var indexParameter = req.URL.Query()["index"]; 
+	if len(indexParameter) != 1 {
+		err = fmt.Errorf("please pass index as a query parameter")
 	} else {
-		i, err = strconv.Atoi(req.URL.Query()["i"][0])
+		i, err = strconv.Atoi(indexParameter[0])
 	}
 	if err != nil {
-		fmt.Fprintf(w, "Couldn't parse index '%s'.", req.URL.Query()["i"])
+		fmt.Fprintf(w, "Couldn't parse index '%s'.", indexParameter)
 		w.WriteHeader(503)
 		return
 	}
-	trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter", i))
+	trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
 	ret := 0
 	failed := false
 
-	if i < 2 {
+  if i <= 0 {
+    ret = 0
+  } else if i <= 1 {
 		ret = 1
 	} else {
 		// Call /fib?i=(n-1) and /fib?i=(n-2) and add them together.
