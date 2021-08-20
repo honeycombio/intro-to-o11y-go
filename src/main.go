@@ -7,24 +7,17 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"runtime"
 	"strconv"
 	"sync"
-	"syscall"
-	"time"
-
+  
 	"google.golang.org/grpc/credentials"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/exporters/metric/prometheus"
 	"go.opentelemetry.io/otel/exporters/otlp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
 	"go.opentelemetry.io/otel/exporters/stdout"
-	"go.opentelemetry.io/otel/exporters/trace/jaeger"
-	"go.opentelemetry.io/otel/metric"
-	mglobal "go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/semconv"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -36,17 +29,7 @@ import (
 )
 
 func main() {
-	serviceName, _ := os.LookupEnv("PROJECT_NAME")
-
-	//pusher, err := mout.InstallNewPipeline(mout.Config{
-	//	Quantiles:   []float64{0.5, 0.9, 0.99},
-	//	PrettyPrint: false,
-	//})
-	//defer pusher.Stop()
-
-	prom, err := prometheus.InstallNewPipeline(prometheus.Config{
-		DefaultHistogramBoundaries: []float64{0.5, 0.9, 0.99},
-	})
+	serviceName, _ := os.LookupEnv("SERVICE_NAME")
 
 	// stdout exporter
 	std, err := stdout.NewExporter(stdout.WithPrettyPrint())
@@ -55,8 +38,8 @@ func main() {
 	}
 
 	// honeycomb OTLP gRPC exporter
-	apikey, _ := os.LookupEnv("HNY_KEY")
-	dataset, _ := os.LookupEnv("HNY_DATASET")
+	apikey, _ := os.LookupEnv("HONEYCOMB_API_KEY")
+	dataset, _ := os.LookupEnv("HONEYCOMB_DATASET")
 	driver := otlpgrpc.NewDriver(
 		otlpgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")),
 		otlpgrpc.WithEndpoint("api.honeycomb.io:443"),
@@ -71,20 +54,11 @@ func main() {
 	}
 	defer hny.Shutdown(context.Background())
 
-	// jaeger exporter
-	jaegerEndpoint, _ := os.LookupEnv("JAEGER_ENDPOINT")
-	jExporter, err := jaeger.NewRawExporter(
-    jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(jaegerEndpoint)),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	tp := sdktrace.NewTracerProvider(
     sdktrace.WithSampler(sdktrace.AlwaysSample()),
     sdktrace.WithResource(resource.NewWithAttributes(semconv.ServiceNameKey.String(serviceName))),
-		sdktrace.WithSyncer(std), sdktrace.WithBatcher(hny),
-		sdktrace.WithBatcher(jExporter)) // , sdktrace.WithBatcher(sdExporter))
+		sdktrace.WithSyncer(std), 
+    sdktrace.WithBatcher(hny)) 
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -96,10 +70,7 @@ func main() {
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", otelhttp.NewHandler(otelhttp.WithRouteTag("/fib", http.HandlerFunc(fibHandler)), "fibonacci", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/fibinternal", otelhttp.NewHandler(otelhttp.WithRouteTag("/fibinternal", http.HandlerFunc(fibHandler)), "fibonacci"))
-	mux.Handle("/metrics", prom)
 	os.Stderr.WriteString("Initializing the server...\n")
-
-	go updateDiskMetrics(context.Background())
 
 	err = http.ListenAndServe(":3000", mux)
 	if err != nil {
@@ -107,13 +78,6 @@ func main() {
 	}
 }
 
-func rootHandler(w http.ResponseWriter, req *http.Request) {
-	ctx := req.Context()
-	trace.SpanFromContext(ctx).AddEvent("annotation within span")
-	_ = dbHandler(ctx, "foo")
-
-	fmt.Fprintf(w, "Click [Tools] > [Logs] to see spans!")
-}
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
@@ -192,52 +156,94 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%d", ret)
 }
 
-func updateDiskMetrics(ctx context.Context) {
-	appKey := attribute.Key("glitch.com/app")                // The Glitch app name.
-	containerKey := attribute.Key("glitch.com/container_id") // The Glitch container id.
 
-	meter := mglobal.Meter("container")
-	mem, _ := meter.NewInt64ValueRecorder("mem_usage",
-		metric.WithDescription("Amount of memory used."),
-	)
-	used, _ := meter.NewFloat64ValueRecorder("disk_usage",
-		metric.WithDescription("Amount of disk used."),
-	)
-	quota, _ := meter.NewFloat64ValueRecorder("disk_quota",
-		metric.WithDescription("Amount of disk quota available."),
-	)
-	goroutines, _ := meter.NewInt64ValueRecorder("num_goroutines",
-		metric.WithDescription("Amount of goroutines running."),
-	)
+func rootHandler(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	trace.SpanFromContext(ctx).AddEvent("annotation within span")
+  
+  var html = `
+<html>
+  <head>
+    <title>Fibonacci Microservice</title>
+    <style>
+      .fibonacci-sequence {
+        margin:20px;
+        padding:10px;
+        font-family: Monospace;
+        font-size:larger;
+        border: 1px black solid;
+      }
+    </style>
+       <script src="/sequence.js" defer></script>
+ 
+  </head>
+  <body>
+    <header>
+      <h1>
+         A sequence of numbers:
+      </h1>
+    </header>
 
-	var m runtime.MemStats
-	for {
-		runtime.ReadMemStats(&m)
+    <main>
+      <button id="go-button">
+        Go
+      </button>
+      <div id="put-numbers-here" class="fibonacci-sequence">
+        &nbsp;
+      </div>
+      <button id="stop-button">
+        Stop
+      </button>
 
-		var stat syscall.Statfs_t
-		wd, _ := os.Getwd()
-		syscall.Statfs(wd, &stat)
+    </main>
 
-		all := float64(stat.Blocks) * float64(stat.Bsize)
-		free := float64(stat.Bfree) * float64(stat.Bsize)
+  </body>
+</html>`
 
-		meter.RecordBatch(ctx, []attribute.KeyValue{
-			appKey.String(os.Getenv("PROJECT_DOMAIN")),
-			containerKey.String(os.Getenv("HOSTNAME"))},
-			used.Measurement(all-free),
-			quota.Measurement(all),
-			mem.Measurement(int64(m.Sys)),
-			goroutines.Measurement(int64(runtime.NumGoroutine())),
-		)
-		time.Sleep(time.Minute)
-	}
+	fmt.Fprintf(w, html)
 }
 
-func dbHandler(ctx context.Context, color string) int {
-	tr := otel.Tracer("dbHandler")
-	ctx, span := tr.Start(ctx, "database")
-	defer span.End()
 
-	// Pretend we talked to a database here.
-	return 0
+func jsHandler(w http.ResponseWriter, req *http.Request) {
+  
+  var js = `
+<html>
+  <head>
+    <title>Fibonacci Microservice</title>
+    <style>
+      .fibonacci-sequence {
+        margin:20px;
+        padding:10px;
+        font-family: Monospace;
+        font-size:larger;
+        border: 1px black solid;
+      }
+    </style>
+       <script src="/sequence.js" defer></script>
+ 
+  </head>
+  <body>
+    <header>
+      <h1>
+         A sequence of numbers:
+      </h1>
+    </header>
+
+    <main>
+      <button id="go-button">
+        Go
+      </button>
+      <div id="put-numbers-here" class="fibonacci-sequence">
+        &nbsp;
+      </div>
+      <button id="stop-button">
+        Stop
+      </button>
+
+    </main>
+
+  </body>
+</html>`
+
+	fmt.Fprintf(w, js)
 }
