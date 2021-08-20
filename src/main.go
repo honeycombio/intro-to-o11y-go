@@ -67,6 +67,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", otelhttp.NewHandler(otelhttp.WithRouteTag("/", http.HandlerFunc(rootHandler)), "root", otelhttp.WithPublicEndpoint()))
+  mux.Handle("/sequence.js", otelhttp.NewHandler(otelhttp.WithRouteTag("/sequence.js", http.HandlerFunc(jsHandler)), "sequence-js", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", otelhttp.NewHandler(otelhttp.WithRouteTag("/fib", http.HandlerFunc(fibHandler)), "fibonacci", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/fibinternal", otelhttp.NewHandler(otelhttp.WithRouteTag("/fibinternal", http.HandlerFunc(fibHandler)), "fibonacci"))
@@ -77,7 +78,6 @@ func main() {
 		log.Fatalf("Could not start web server: %s", err)
 	}
 }
-
 
 func fibHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
@@ -95,7 +95,10 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(503)
 		return
 	}
-	trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
+  
+  // add the 
+  
+	// trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
 	ret := 0
 	failed := false
 
@@ -114,7 +117,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 				err := func() error {
 					ictx, sp := tr.Start(ctx, "fibClient")
 					defer sp.End()
-					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?i=%d", n)
+					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?index=%d", n)
 					trace.SpanFromContext(ictx).SetAttributes(attribute.String("url", url))
 					trace.SpanFromContext(ictx).AddEvent("Fib loop count", trace.WithAttributes(attribute.Int("fib-loop", n)))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
@@ -206,44 +209,93 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 
 func jsHandler(w http.ResponseWriter, req *http.Request) {
   
-  var js = `
-<html>
-  <head>
-    <title>Fibonacci Microservice</title>
-    <style>
-      .fibonacci-sequence {
-        margin:20px;
-        padding:10px;
-        font-family: Monospace;
-        font-size:larger;
-        border: 1px black solid;
-      }
-    </style>
-       <script src="/sequence.js" defer></script>
- 
-  </head>
-  <body>
-    <header>
-      <h1>
-         A sequence of numbers:
-      </h1>
-    </header>
+  var js = `console.log("hello from sequence.js");
 
-    <main>
-      <button id="go-button">
-        Go
-      </button>
-      <div id="put-numbers-here" class="fibonacci-sequence">
-        &nbsp;
-      </div>
-      <button id="stop-button">
-        Stop
-      </button>
+const putNumbersHere = document.getElementById("put-numbers-here");
+const goButton = document.getElementById("go-button");
+const stopButton = document.getElementById("stop-button");
+var stopRequested = false;
 
-    </main>
+function formatFibonacciNumber(n) {
+  const container = document.createElement("span");
 
-  </body>
-</html>`
+  const numberSpan = document.createElement("span");
+  numberSpan.classList.add("fibonacci-number");
+  numberSpan.appendChild(document.createTextNode(n));
+
+  const separatorSpan = document.createElement("span");
+  numberSpan.classList.add("separator");
+  numberSpan.appendChild(document.createTextNode(", "));
+  container.appendChild(numberSpan);
+  container.appendChild(separatorSpan);
+  return container;
+}
+
+const unicodeBomb = "\u{1F4A3}";
+function indicateError() {
+  return document.createTextNode(unicodeBomb);
+}
+
+const unicodeEllipsis = "…"
+function indicateLoading() {
+  const loadingSpan = document.createElement("span");
+  loadingSpan.appendChild(document.createTextNode(unicodeEllipsis));
+  return loadingSpan;
+}
+
+const unicodeStop = "\u{1F6D1}";
+function indicateStop() {
+  return document.createTextNode(unicodeStop);
+}
+
+function addNumbersToSequence(startingIndex) {
+  const placeToPutTheNumber = document.createElement("span");
+  putNumbersHere.appendChild(placeToPutTheNumber);
+
+  if (stopRequested) {
+    placeToPutTheNumber.appendChild(indicateStop());
+    console.log("stopping");
+    return;
+  }
+
+  placeToPutTheNumber.appendChild(indicateLoading());
+
+  const i = startingIndex;
+  const url = "/fib?index=" + i;
+  fetch(url).then(response => {
+    if (response.ok) {
+      console.log("ok for " + i);
+      response
+        .json()
+        .then(n => {
+          placeToPutTheNumber.replaceChildren(formatFibonacciNumber(n));
+          addNumbersToSequence(i + 1);
+        }, err => {
+          placeToPutTheNumber.replaceChildren(indicateError());
+          console.log("parsing error on " + i);
+        });
+    } else {
+      placeToPutTheNumber.replaceChildren(indicateError());
+      console.log("error on " + i);
+    }
+  });
+}
+
+function go() {
+  stopRequested = false;
+  putNumbersHere.replaceChildren();
+  addNumbersToSequence(0);
+}
+
+goButton.addEventListener("click", go);
+
+function stop() {
+  console.log("I hear you. Setting stopRequested");
+  stopRequested = true;
+}
+stopButton.addEventListener("click", stop);
+
+`
 
 	fmt.Fprintf(w, js)
 }
