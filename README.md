@@ -1,4 +1,4 @@
-# Into to Observability: OpenTelemetry in Go
+# Intro to Observability: OpenTelemetry in Go
 
 This application is here for you to try out tracing.
 It consists of a microservice that calls itself, so you can simulate
@@ -15,7 +15,7 @@ environment variables:
 
 ```
 HONEYCOMB_API_KEY=replace-this-with-a-real-api-key
-HONEYCOMB_DATASET=otel-java
+HONEYCOMB_DATASET=otel-go
 SERVICE_NAME=fibonacci-microservice
 ```
 
