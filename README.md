@@ -66,18 +66,6 @@ In `fibHandler`, surround the addition statement with:
 	defer span.End()
 ```
 
-Break out a method for creating the returned Fibonacci number, and add the
-magical `@WithSpan` attribute.
-
-Something like:
-
-```java
-  @WithSpan
-  private FibonacciNumber calculate(int index, FibonacciNumber previous, FibonacciNumber oneBeforeThat) {
-    return new FibonacciNumber(index, previous.fibonacciNumber + oneBeforeThat.fibonacciNumber);
-  }
-```
-
 After a restart, do your traces show this extra span? Do you see the name of your method?
 What percentage of the service time is spend in it?
 

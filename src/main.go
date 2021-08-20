@@ -139,7 +139,10 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					trace.SpanFromContext(ictx).SetAttributes(attribute.Int("result", resp))
 					mtx.Lock()
 					defer mtx.Unlock()
-					ret += resp
+          
+          // here's some exciting addition. Put it in its own span
+        	ret += resp
+	        
 					return err
 				}()
 				if err != nil {
