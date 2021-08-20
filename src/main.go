@@ -96,9 +96,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
   
-  // add the 
+  // add the index parameter as a custom attribute to the current span here
   
-	// trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
 	ret := 0
 	failed := false
 
@@ -107,7 +106,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
   } else if i <= 1 {
 		ret = 1
 	} else {
-		// Call /fib?i=(n-1) and /fib?i=(n-2) and add them together.
+		// Call /fib?index=(n-1) and /fib?index=(n-2) and add them together.
 		var mtx sync.Mutex
 		var wg sync.WaitGroup
 		client := http.DefaultClient
@@ -118,8 +117,8 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					ictx, sp := tr.Start(ctx, "fibClient")
 					defer sp.End()
 					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?index=%d", n)
-					trace.SpanFromContext(ictx).SetAttributes(attribute.String("url", url))
-					trace.SpanFromContext(ictx).AddEvent("Fib loop count", trace.WithAttributes(attribute.Int("fib-loop", n)))
+					// trace.SpanFromContext(ictx).SetAttributes(attribute.String("url", url))
+					// trace.SpanFromContext(ictx).AddEvent("Fib loop count", trace.WithAttributes(attribute.Int("fib-loop", n)))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)
 					ictx, req = otelhttptrace.W3C(ictx, req)
 					otelhttptrace.Inject(ictx, req)
@@ -162,7 +161,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	trace.SpanFromContext(ctx).AddEvent("annotation within span")
+	trace.SpanFromContext(ctx).AddEvent("this is an annotation within the span")
   
   var html = `
 <html>
