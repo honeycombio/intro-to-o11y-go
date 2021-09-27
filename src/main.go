@@ -9,7 +9,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
-  
+
 	"google.golang.org/grpc/credentials"
 
 	"go.opentelemetry.io/otel"
@@ -17,11 +17,11 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	otlp "go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	otlpgrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	stdout "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
@@ -32,7 +32,7 @@ func main() {
 	serviceName, _ := os.LookupEnv("SERVICE_NAME")
 
 	// stdout exporter
-	std, err := stdout.NewExporter(stdout.WithPrettyPrint())
+	std, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func main() {
 	// honeycomb OTLP gRPC exporter
 	apikey, _ := os.LookupEnv("HONEYCOMB_API_KEY")
 	dataset, _ := os.LookupEnv("HONEYCOMB_DATASET")
-	driver := otlpgrpc.NewDriver(
+	driver := otlpgrpc.NewClient(
 		otlpgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")),
 		otlpgrpc.WithEndpoint("api.honeycomb.io:443"),
 		otlpgrpc.WithHeaders(map[string]string{
@@ -48,17 +48,20 @@ func main() {
 			"x-honeycomb-dataset": dataset,
 		}),
 	)
-	hny, err := otlp.NewExporter(context.Background(), driver)
+	if err != nil {
+		log.Fatal(err)
+	}
+	hny, err := otlp.New(context.Background(), driver)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer hny.Shutdown(context.Background())
 
 	tp := sdktrace.NewTracerProvider(
-    sdktrace.WithSampler(sdktrace.AlwaysSample()),
-    sdktrace.WithResource(resource.NewWithAttributes(semconv.ServiceNameKey.String(serviceName))),
-		sdktrace.WithSyncer(std), 
-    sdktrace.WithBatcher(hny)) 
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithResource(resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String(serviceName))),
+		sdktrace.WithSyncer(std),
+		sdktrace.WithBatcher(hny))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +70,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", otelhttp.NewHandler(otelhttp.WithRouteTag("/", http.HandlerFunc(rootHandler)), "root", otelhttp.WithPublicEndpoint()))
-  mux.Handle("/sequence.js", otelhttp.NewHandler(otelhttp.WithRouteTag("/sequence.js", http.HandlerFunc(jsHandler)), "sequence-js", otelhttp.WithPublicEndpoint()))
+	mux.Handle("/sequence.js", otelhttp.NewHandler(otelhttp.WithRouteTag("/sequence.js", http.HandlerFunc(jsHandler)), "sequence-js", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", otelhttp.NewHandler(otelhttp.WithRouteTag("/fib", http.HandlerFunc(fibHandler)), "fibonacci", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/fibinternal", otelhttp.NewHandler(otelhttp.WithRouteTag("/fibinternal", http.HandlerFunc(fibHandler)), "fibonacci"))
@@ -84,7 +87,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	tr := otel.Tracer("fibHandler")
 	var err error
 	var i int
-  var indexParameter = req.URL.Query()["index"]; 
+	var indexParameter = req.URL.Query()["index"]
 	if len(indexParameter) != 1 {
 		err = fmt.Errorf("please pass index as a query parameter")
 	} else {
@@ -95,15 +98,15 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(503)
 		return
 	}
-  
-  // add the index parameter as a custom attribute to the current span here
-  
+
+	// add the index parameter as a custom attribute to the current span here
+
 	ret := 0
 	failed := false
 
-  if i <= 0 {
-    ret = 0
-  } else if i <= 1 {
+	if i <= 0 {
+		ret = 0
+	} else if i <= 1 {
 		ret = 1
 	} else {
 		// Call /fib?index=(n-1) and /fib?index=(n-2) and add them together.
@@ -139,10 +142,10 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					trace.SpanFromContext(ictx).SetAttributes(attribute.Int("result", resp))
 					mtx.Lock()
 					defer mtx.Unlock()
-          
-          // here's some exciting addition. Put it in its own span
-        	ret += resp
-	        
+
+					// here's some exciting addition. Put it in its own span
+					ret += resp
+
 					return err
 				}()
 				if err != nil {
@@ -161,12 +164,11 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%d", ret)
 }
 
-
 func rootHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	trace.SpanFromContext(ctx).AddEvent("this is an annotation within the span")
-  
-  var html = `
+
+	var html = `
 <html>
   <head>
     <title>Fibonacci Microservice</title>
@@ -208,10 +210,9 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, html)
 }
 
-
 func jsHandler(w http.ResponseWriter, req *http.Request) {
-  
-  var js = `console.log("hello from sequence.js");
+
+	var js = `console.log("hello from sequence.js");
 
 const putNumbersHere = document.getElementById("put-numbers-here");
 const goButton = document.getElementById("go-button");
