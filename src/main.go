@@ -100,7 +100,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
   // CUSTOM ATTRIBUTE: add the index parameter as a custom attribute to the current span here
-  trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
+  // trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
   
 	ret := 0
 	failed := false
