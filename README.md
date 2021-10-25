@@ -44,7 +44,7 @@ Which trace has the most, and why is it different?
 Let's make it easier to see what the "index" query parameter is.
 
 In the `fibHandler` function in `main.go`, after parsing the index from the query,
-add it as a custom attribute:
+add it as a custom attribute (search for "CUSTOM ATTRIBUTE" in main.go):
 
 `trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))`
 
@@ -57,7 +57,7 @@ Can you make the trace waterfall view show the index? What pattern does it show?
 Make the calculation into its own span, to see how much of the time spent on
 this service is the meat: adding the fibonacci numbers.
 
-In `fibHandler`, surround the addition statement with:
+In `fibHandler`, surround the addition statement with a span start and end (seach for "CUSTOM SPAN" to find it):
 
 ```go
 	tr := otel.Tracer("calculator")

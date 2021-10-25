@@ -144,10 +144,10 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					mtx.Lock()
 					defer mtx.Unlock()
 
-					// here's some exciting addition. Put it in its own span
-          ctx, span := tr.Start(ctx, "calculation")    
+          // CUSTOM SPAN: ere's some exciting addition. Put it in its own span
+          // _, span := tr.Start(ctx, "calculation")    
 					ret += resp // the big calculation
-          defer span.End()
+          // defer span.End()
 
 					return err
 				}()
