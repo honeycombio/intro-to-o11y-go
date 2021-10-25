@@ -99,8 +99,9 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// add the index parameter as a custom attribute to the current span here
-
+  // CUSTOM ATTRIBUTE: add the index parameter as a custom attribute to the current span here
+  trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
+  
 	ret := 0
 	failed := false
 
@@ -144,7 +145,9 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					defer mtx.Unlock()
 
 					// here's some exciting addition. Put it in its own span
-					ret += resp
+          ctx, span := tr.Start(ctx, "calculation")    
+					ret += resp // the big calculation
+          defer span.End()
 
 					return err
 				}()
