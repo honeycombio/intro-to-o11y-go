@@ -29,6 +29,14 @@ You can name the Honeycomb Dataset anything you want.
 
 You can choose any Service Name you want.
 
+### Start the app
+
+```shell
+./init.sh
+```
+
+This runs `src/main.go`.
+
 #### See the results
 
 Run the app. Activate the sequence of numbers.

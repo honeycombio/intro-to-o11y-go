@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"google.golang.org/grpc/credentials"
+	"github.com/joho/godotenv"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -29,6 +30,10 @@ import (
 )
 
 func main() {
+	err := godotenv.Load()
+  if err != nil {
+    log.Fatal("Error loading .env file")
+  }
 	serviceName, _ := os.LookupEnv("SERVICE_NAME")
 
 	// stdout exporter
