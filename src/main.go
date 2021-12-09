@@ -74,7 +74,7 @@ func main() {
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", otelhttp.NewHandler(otelhttp.WithRouteTag("/fib", http.HandlerFunc(fibHandler)), "fibonacci", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/fibinternal", otelhttp.NewHandler(otelhttp.WithRouteTag("/fibinternal", http.HandlerFunc(fibHandler)), "fibonacci"))
-	os.Stderr.WriteString("Initializing the server...\n")
+	os.Stderr.WriteString("Initializing the server... hit http://localhost:3000 to see it\n")
 
 	err = http.ListenAndServe(":3000", mux)
 	if err != nil {

@@ -6,12 +6,15 @@ a whole microservice ecosystem with just one service!
 
 ## What to do
 
-Remix this app on Glitch.
+Shortest route: [Remix this app on Glitch](https://glitch.com/edit/#!/intro-to-o11y-go).
 
 ### Configure tracing to Honeycomb
 
-In `.env`, add these
-environment variables:
+Create a .env file:
+
+`cp .env.example .env`
+
+In `.env`, populate these environment variables:
 
 ```
 HONEYCOMB_API_KEY=replace-this-with-a-real-api-key
