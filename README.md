@@ -8,6 +8,12 @@ a whole microservice ecosystem with just one service!
 
 Shortest route: [Remix this app on Glitch](https://glitch.com/edit/#!/intro-to-o11y-go).
 
+### Run locally
+
+If you use VSCode Devcontainers, this repository is set up for that.
+
+Otherwise, we expect golang to be set up.
+
 ### Configure tracing to Honeycomb
 
 Create a .env file:
@@ -79,4 +85,3 @@ In `fibHandler`, surround the addition statement with a span start and end (seac
 
 After a restart, do your traces show this extra span? Do you see the name of your method?
 What percentage of the service time is spend in it?
-
