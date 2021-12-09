@@ -10,19 +10,9 @@ import (
 	"strconv"
 	"sync"
 
-	"google.golang.org/grpc/credentials"
-	"github.com/joho/godotenv"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	otlp "go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	otlpgrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
@@ -30,48 +20,9 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-  if err != nil {
-    log.Fatal("Error loading .env file")
-  }
-	serviceName, _ := os.LookupEnv("SERVICE_NAME")
-
-	// stdout exporter
-	std, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// honeycomb OTLP gRPC exporter
-	apikey, _ := os.LookupEnv("HONEYCOMB_API_KEY")
-	dataset, _ := os.LookupEnv("HONEYCOMB_DATASET")
-	driver := otlpgrpc.NewClient(
-		otlpgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")),
-		otlpgrpc.WithEndpoint("api.honeycomb.io:443"),
-		otlpgrpc.WithHeaders(map[string]string{
-			"x-honeycomb-team":    apikey,
-			"x-honeycomb-dataset": dataset,
-		}),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	hny, err := otlp.New(context.Background(), driver)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer hny.Shutdown(context.Background())
-
-	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sdktrace.AlwaysSample()),
-		sdktrace.WithResource(resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String(serviceName))),
-		sdktrace.WithSyncer(std),
-		sdktrace.WithBatcher(hny))
-	if err != nil {
-		log.Fatal(err)
-	}
-	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	ctx := context.Background()
+	hny := InitializeTracing(ctx)
+	defer hny.Shutdown(ctx) // let the exporter send all queued traces, after everything else in this block completes
 
 	mux := http.NewServeMux()
 	mux.Handle("/", otelhttp.NewHandler(otelhttp.WithRouteTag("/", http.HandlerFunc(rootHandler)), "root", otelhttp.WithPublicEndpoint()))
@@ -79,9 +30,9 @@ func main() {
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", otelhttp.NewHandler(otelhttp.WithRouteTag("/fib", http.HandlerFunc(fibHandler)), "fibonacci", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/fibinternal", otelhttp.NewHandler(otelhttp.WithRouteTag("/fibinternal", http.HandlerFunc(fibHandler)), "fibonacci"))
-	os.Stderr.WriteString("Initializing the server... hit http://localhost:3000 to see it\n")
+	os.Stderr.WriteString("Initializing the server... look for the app on http://localhost:3000\n")
 
-	err = http.ListenAndServe(":3000", mux)
+	err := http.ListenAndServe(":3000", mux)
 	if err != nil {
 		log.Fatalf("Could not start web server: %s", err)
 	}
@@ -104,9 +55,9 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-  // CUSTOM ATTRIBUTE: add the index parameter as a custom attribute to the current span here
-  // trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
-  
+	// CUSTOM ATTRIBUTE: add the index parameter as a custom attribute to the current span here
+	// trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
+
 	ret := 0
 	failed := false
 
@@ -149,10 +100,10 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					mtx.Lock()
 					defer mtx.Unlock()
 
-          // CUSTOM SPAN: ere's some exciting addition. Put it in its own span
-          // _, span := tr.Start(ctx, "calculation")    
+					// CUSTOM SPAN: ere's some exciting addition. Put it in its own span
+					// _, span := tr.Start(ctx, "calculation")
 					ret += resp // the big calculation
-          // defer span.End()
+					// defer span.End()
 
 					return err
 				}()
