@@ -38,7 +38,7 @@ You can choose any Service Name you want.
 ### Start the app
 
 ```shell
-./init.sh
+./run.sh
 ```
 
 This runs `src/main.go`.
