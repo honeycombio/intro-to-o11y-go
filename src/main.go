@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"sync"
 
+  "github.com/joho/godotenv"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -20,6 +22,10 @@ import (
 )
 
 func main() {
+  err := godotenv.Load()
+  if err != nil {
+    log.Fatal("Error loading .env file")
+  }
 	ctx := context.Background()
 	hny := InitializeTracing(ctx)
 	defer hny.Shutdown(ctx) // let the exporter send all queued traces, after everything else in this block completes
@@ -32,7 +38,7 @@ func main() {
 	mux.Handle("/fibinternal", otelhttp.NewHandler(otelhttp.WithRouteTag("/fibinternal", http.HandlerFunc(fibHandler)), "fibonacci"))
 	os.Stderr.WriteString("Initializing the server... look for the app on http://localhost:3000\n")
 
-	err := http.ListenAndServe(":3000", mux)
+	err = http.ListenAndServe(":3000", mux)
 	if err != nil {
 		log.Fatalf("Could not start web server: %s", err)
 	}
@@ -112,7 +118,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 						w.WriteHeader(503)
 						failed = true
 					}
-					fmt.Fprintf(w, "Failed to call child index '%s'.\n", n)
+					fmt.Fprintf(w, "Failed to call child index '%d'.\n", n)
 				}
 				wg.Done()
 			}(i - offset)
