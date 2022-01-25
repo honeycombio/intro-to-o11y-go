@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
-  "os"
+	"os"
 
 	"google.golang.org/grpc/credentials"
 
@@ -29,6 +30,8 @@ func InitializeTracing(ctx context.Context) *otlp.Exporter {
 	// honeycomb OTLP gRPC exporter
 	apikey, _ := os.LookupEnv("HONEYCOMB_API_KEY")
 	dataset, _ := os.LookupEnv("HONEYCOMB_DATASET")
+	os.Stderr.WriteString(fmt.Sprintf("Sending to Honeycomb with API Key <%s> and dataset %s\n", apikey, dataset))
+
 	driver := otlpgrpc.NewClient(
 		otlpgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")),
 		otlpgrpc.WithEndpoint("api.honeycomb.io:443"),
