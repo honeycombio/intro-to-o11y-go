@@ -24,7 +24,7 @@ import (
 func main() {
   err := godotenv.Load()
   if err != nil {
-    log.Fatal("Error loading .env file")
+    os.Stdout.WriteString("Warning: No .env file found. Consider creating one\n");
   }
 	ctx := context.Background()
 	hny := InitializeTracing(ctx)
