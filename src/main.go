@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"sync"
 
-  "github.com/joho/godotenv"
+	"github.com/joho/godotenv"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -22,10 +22,10 @@ import (
 )
 
 func main() {
-  err := godotenv.Load()
-  if err != nil {
-    os.Stdout.WriteString("Warning: No .env file found. Consider creating one\n");
-  }
+	err := godotenv.Load()
+	if err != nil {
+		os.Stdout.WriteString("Warning: No .env file found. Consider creating one\n")
+	}
 	ctx := context.Background()
 	hny := InitializeTracing(ctx)
 	defer hny.Shutdown(ctx) // let the exporter send all queued traces, after everything else in this block completes
@@ -61,8 +61,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// CUSTOM ATTRIBUTE: add the index parameter as a custom attribute to the current span here
-	// trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
+	trace.SpanFromContext(ctx).SetAttributes(attribute.Int("parameter.index", i))
 
 	ret := 0
 	failed := false
@@ -75,7 +74,12 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 		// Call /fib?index=(n-1) and /fib?index=(n-2) and add them together.
 		var mtx sync.Mutex
 		var wg sync.WaitGroup
-		client := http.DefaultClient
+		client := &http.Client{
+			Transport: &http.Transport{
+				MaxIdleConnsPerHost: 200,
+			},
+		}
+
 		for offset := 1; offset < 3; offset++ {
 			wg.Add(1)
 			go func(n int) {
@@ -97,6 +101,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 					if err != nil {
 						return err
 					}
+
 					resp, err := strconv.Atoi(string(body))
 					if err != nil {
 						trace.SpanFromContext(ictx).SetStatus(codes.Error, "failure parsing")
