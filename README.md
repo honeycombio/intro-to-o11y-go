@@ -43,15 +43,12 @@ Create a `.env` file in the command line:
 Now open `.env`, and populate the environment variables. (This file will be ignored by git, so you won't commit your API key.)
 
 ```bash
-export HONEYCOMB_API_KEY=replace-this-with-a-real-api-key # important and unique to you
-export HONEYCOMB_DATASET=hello-observability # can be any name
+export HONEYCOMB_API_KEY=replace-this-with-a-real-api-key # important 
 export SERVICE_NAME=fib-microsvc # can be any name
 ```
 
 Get a Honeycomb API Key from your Team Settings in [Honeycomb](https://ui.honeycomb.io).
 (Find this by clicking on your profile in the lower-left corner.)
-
-You can name the Honeycomb Dataset anything you want.
 
 You can choose any Service Name you want.
 
@@ -59,7 +56,7 @@ You can choose any Service Name you want.
 
 Run the app. Activate the sequence of numbers.
 
-Go to [Honeycomb](https://ui.honeycomb.io) and choose the Dataset you configured.
+Go to [Honeycomb](https://ui.honeycomb.io) and choose the Service Name you configured.
 
 How many traces are there?
 

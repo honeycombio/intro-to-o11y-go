@@ -19,8 +19,6 @@ import (
 )
 
 func InitializeTracing(ctx context.Context) *otlp.Exporter {
-	serviceName, _ := os.LookupEnv("SERVICE_NAME")
-
 	// stdout exporter
 	std, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
 	if err != nil {
@@ -29,15 +27,14 @@ func InitializeTracing(ctx context.Context) *otlp.Exporter {
 
 	// honeycomb OTLP gRPC exporter
 	apikey, _ := os.LookupEnv("HONEYCOMB_API_KEY")
-	dataset, _ := os.LookupEnv("HONEYCOMB_DATASET")
-	os.Stderr.WriteString(fmt.Sprintf("Sending to Honeycomb with API Key <%s> and dataset %s\n", apikey, dataset))
+	serviceName, _ := os.LookupEnv("SERVICE_NAME")
+	os.Stderr.WriteString(fmt.Sprintf("Sending to Honeycomb with API Key <%s> and service name %s\n", apikey, serviceName))
 
 	driver := otlpgrpc.NewClient(
 		otlpgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, "")),
 		otlpgrpc.WithEndpoint("api.honeycomb.io:443"),
 		otlpgrpc.WithHeaders(map[string]string{
 			"x-honeycomb-team":    apikey,
-			"x-honeycomb-dataset": dataset,
 		}),
 	)
 	if err != nil {
