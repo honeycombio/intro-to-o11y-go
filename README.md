@@ -43,12 +43,11 @@ Create a `.env` file in the command line:
 Now open `.env`, and populate the environment variables. (This file will be ignored by git, so you won't commit your API key.)
 
 ```bash
-export HONEYCOMB_API_KEY=replace-this-with-a-real-api-key # important 
+export HONEYCOMB_API_KEY=replace-this-with-a-real-api-key # important
 export SERVICE_NAME=fib-microsvc # can be any name
 ```
 
-Get a Honeycomb API Key from your Team Settings in [Honeycomb](https://ui.honeycomb.io).
-(Find this by clicking on your profile in the lower-left corner.)
+[Log in to honeycomb](ui.honeycomb.io) and [get a Honeycomb API Key](https://docs.honeycomb.io/getting-data-in/api-keys/#find-api-keys).
 
 You can choose any Service Name you want.
 
