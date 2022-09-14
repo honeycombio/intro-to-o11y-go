@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,7 +9,7 @@ import (
 	"strconv"
 	"sync"
 
-  "github.com/joho/godotenv"
+	"github.com/joho/godotenv"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -19,16 +18,29 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
+	honeycomb "github.com/honeycombio/honeycomb-opentelemetry-go"
+	"github.com/honeycombio/opentelemetry-go-contrib/launcher"
 )
 
 func main() {
-  err := godotenv.Load()
-  if err != nil {
-    os.Stdout.WriteString("Warning: No .env file found. Consider creating one\n");
-  }
-	ctx := context.Background()
-	hny := InitializeTracing(ctx)
-	defer hny.Shutdown(ctx) // let the exporter send all queued traces, after everything else in this block completes
+	err := godotenv.Load()
+	if err != nil {
+		os.Stdout.WriteString("Warning: No .env file found. Consider creating one\n")
+	}
+
+	apikey, _ := os.LookupEnv("HONEYCOMB_API_KEY")
+	serviceName, _ := os.LookupEnv("SERVICE_NAME")
+	os.Stderr.WriteString(fmt.Sprintf("Sending to Honeycomb with API Key <%s> and service name %s\n", apikey, serviceName))
+
+	otelShutdown, err := launcher.ConfigureOpenTelemetry(
+		honeycomb.WithApiKey(apikey),
+		launcher.WithServiceName(serviceName),
+	)
+	if err != nil {
+		log.Fatalf("error setting up OTel SDK - %e", err)
+	}
+	defer otelShutdown()
 
 	mux := http.NewServeMux()
 	mux.Handle("/", otelhttp.NewHandler(otelhttp.WithRouteTag("/", http.HandlerFunc(rootHandler)), "root", otelhttp.WithPublicEndpoint()))
@@ -264,6 +276,5 @@ function stop() {
 stopButton.addEventListener("click", stop);
 
 `
-
 	fmt.Fprintf(w, js)
 }
