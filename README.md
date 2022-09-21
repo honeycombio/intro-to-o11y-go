@@ -10,11 +10,7 @@ Recommended:
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/honeycombio/intro-to-o11y-go)
 
-Alternative:
-
-[Remix this app on Glitch](https://glitch.com/edit/#!/intro-to-o11y-go).
-
-Alternative 2: Clone and run locally. If you use VSCode Devcontainers, this repository is set up for that. Otherwise, we expect golang to be set up.
+Alternative: Clone and run locally. If you use VSCode Devcontainers, this repository is set up for that. Otherwise, we expect golang to be set up.
 
 ### Start the App
 
