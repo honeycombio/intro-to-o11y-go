@@ -12,7 +12,9 @@ Recommended:
 
 Gitpod is a free cloud environment where you can run the example without needing to clone the code or install Python on your machine.
 
-Or you can clone this repo and run the app locally. If you use VSCode Devcontainers, this repository is set up for that. Otherwise, the app will require golang to be set up.
+You can also clone this repo and run the app locally. 
+If you use VSCode Devcontainers, this repository is set up for that. 
+Otherwise, the app will require golang to be set up.
 
 ### Configure Tracing to Honeycomb
 
