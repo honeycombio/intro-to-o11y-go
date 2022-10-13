@@ -18,7 +18,7 @@ Otherwise, the app will require golang to be set up.
 
 ### Configure Tracing to Honeycomb
 
-Next, you'll configure the app to send traces to Honeycomb using an environment variable.
+Next, configure the app to send traces to Honeycomb using an environment variable.
 
 [Log in to honeycomb](ui.honeycomb.io) and [get a Honeycomb API Key](https://docs.honeycomb.io/getting-data-in/api-keys/#find-api-keys).
 
