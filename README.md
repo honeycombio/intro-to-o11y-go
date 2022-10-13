@@ -10,11 +10,11 @@ Recommended:
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/honeycombio/intro-to-o11y-go)
 
-Gitpod is a free cloud environment where you can run the example without needing to clone the code or install Python on your machine.
+Gitpod is a free cloud environment where you can run the example without needing to clone the code or install Go on your machine.
 
 You can also clone this repo and run the app locally. 
 If you use VSCode Devcontainers, this repository is set up for that. 
-Otherwise, the app will require golang to be set up.
+Otherwise, the app will require golang (version 1.17+) to be [installed](https://go.dev/doc/install).
 
 ### Configure Tracing to Honeycomb
 
