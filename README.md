@@ -10,7 +10,26 @@ Recommended:
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/honeycombio/intro-to-o11y-go)
 
-Alternative: Clone and run locally. If you use VSCode Devcontainers, this repository is set up for that. Otherwise, we expect golang to be set up.
+Gitpod is a free cloud environment where you can run the example without needing to clone the code or install Python on your machine.
+
+Or you can clone this repo and run the app locally. If you use VSCode Devcontainers, this repository is set up for that. Otherwise, the app will require golang to be set up.
+
+### Configure Tracing to Honeycomb
+
+Next, you'll configure the app to send traces to Honeycomb using an environment variable.
+
+[Log in to honeycomb](ui.honeycomb.io) and [get a Honeycomb API Key](https://docs.honeycomb.io/getting-data-in/api-keys/#find-api-keys).
+
+Next, the repo comes with an example env file you can copy to get started:
+
+`cp .env.example .env`
+
+Edit `.env` and replace the placeholder value for HONEYCOMB_API_KEY with your own Honeycomb API key. 
+This file will be ignored by git, so you will not accidentally commit your API key.
+
+```bash
+export HONEYCOMB_API_KEY=<your-Honeycomb-api-key-goes-here>
+```
 
 ### Start the App
 
@@ -18,40 +37,25 @@ Alternative: Clone and run locally. If you use VSCode Devcontainers, this reposi
 
 ### See the App
 
-In GitPod: while it's running, click "Remote Explorer" on the left sidebar; then expand "ports" and look for a "preview" button.
+If you are running the app in Gitpod, navigate to the "Ports" tab and click the address for port 3000 to open the app in a new tab:
 
-Locally: [http://localhost:3000](http://localhost:3000)
+![Gitpod open address](img/gitpod-ports-go.png "Gitpod open address")
 
-Activate the sequence of numbers by pushing **Go**. After you see numbers, push **Stop**. Try this a few times.
+If you are running locally, access the app at [http://localhost:3000](http://localhost:3000)
+
+Activate the sequence of numbers by selecting the **Go** button.
+
+After the app displays numbers, select **Stop**.
+
+Try this a few times.
 
 ### Stop the App
 
 Push `Ctrl-C` in the terminal where the app is running.
 
-## Configure Tracing to Honeycomb
+### See the Results
 
-Our goal is to define a few environment variables. `tracing.go` reads these variables to send them to Honeycomb.
-
-Create a `.env` file in the command line:
-
-`cp .env.example .env`
-
-Now open `.env`, and populate the environment variables. (This file will be ignored by git, so you won't commit your API key.)
-
-```bash
-export HONEYCOMB_API_KEY=replace-this-with-a-real-api-key # important
-export SERVICE_NAME=fib-microsvc # can be any name
-```
-
-[Log in to honeycomb](ui.honeycomb.io) and [get a Honeycomb API Key](https://docs.honeycomb.io/getting-data-in/api-keys/#find-api-keys).
-
-You can choose any Service Name you want.
-
-#### See the Results
-
-Run the app. Activate the sequence of numbers.
-
-Go to [Honeycomb](https://ui.honeycomb.io) and choose the Service Name you configured.
+Go to [Honeycomb](https://ui.honeycomb.io) and choose the `fib-microsvc` service.
 
 How many traces are there?
 
