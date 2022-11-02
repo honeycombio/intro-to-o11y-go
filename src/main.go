@@ -30,17 +30,22 @@ func main() {
 	}
 
 	apikey, _ := os.LookupEnv("HONEYCOMB_API_KEY")
-	serviceName, _ := os.LookupEnv("SERVICE_NAME")
-	os.Stderr.WriteString(fmt.Sprintf("Sending to Honeycomb with API Key <%s> and service name %s\n", apikey, serviceName))
 
-	otelShutdown, err := launcher.ConfigureOpenTelemetry(
-		honeycomb.WithApiKey(apikey),
-		launcher.WithServiceName(serviceName),
-	)
-	if err != nil {
-		log.Fatalf("error setting up OTel SDK - %e", err)
+	if apikey != nil {
+		serviceName, _ := os.LookupEnv("SERVICE_NAME")
+		os.Stderr.WriteString(fmt.Sprintf("Sending to Honeycomb with API Key <%s> and service name %s\n", apikey, serviceName))
+
+		otelShutdown, err := launcher.ConfigureOpenTelemetry(
+			honeycomb.WithApiKey(apikey),
+			launcher.WithServiceName(serviceName),
+		)
+		if err != nil {
+			log.Fatalf("error setting up OTel SDK - %e", err)
+		}
+		defer otelShutdown()
+	} else {
+		log.Info("Honeycomb API key not set - disabling OpenTelemetry")
 	}
-	defer otelShutdown()
 
 	mux := http.NewServeMux()
 	mux.Handle("/", otelhttp.NewHandler(otelhttp.WithRouteTag("/", http.HandlerFunc(rootHandler)), "root", otelhttp.WithPublicEndpoint()))

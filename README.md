@@ -16,23 +16,6 @@ You can also clone this repo and run the app locally.
 If you use VSCode Devcontainers, this repository is set up for that. 
 Otherwise, the app will require golang (version 1.17+) to be [installed](https://go.dev/doc/install).
 
-### Configure Tracing to Honeycomb
-
-Next, configure the app to send traces to Honeycomb using an environment variable.
-
-[Log in to honeycomb](ui.honeycomb.io) and [get a Honeycomb API Key](https://docs.honeycomb.io/getting-data-in/api-keys/#find-api-keys).
-
-Next, the repo comes with an example env file you can copy to get started:
-
-`cp .env.example .env`
-
-Edit `.env` and replace the placeholder value for HONEYCOMB_API_KEY with your own Honeycomb API key. 
-This file will be ignored by git, so you will not accidentally commit your API key.
-
-```bash
-export HONEYCOMB_API_KEY=<your-Honeycomb-api-key-goes-here>
-```
-
 ### Start the App
 
 `./run`
@@ -55,7 +38,26 @@ Try this a few times.
 
 Push `Ctrl-C` in the terminal where the app is running.
 
+### Configure Tracing to Honeycomb
+
+Next, configure the app to send traces to Honeycomb using an environment variable.
+
+[Log in to honeycomb](ui.honeycomb.io) and [get a Honeycomb API Key](https://docs.honeycomb.io/getting-data-in/api-keys/#find-api-keys).
+
+Next, the repo comes with an example env file you can copy to get started:
+
+`cp .env.example .env`
+
+Edit `.env` and replace the placeholder value for HONEYCOMB_API_KEY with your own Honeycomb API key. 
+This file will be ignored by git, so you will not accidentally commit your API key.
+
+```bash
+export HONEYCOMB_API_KEY=<your-Honeycomb-api-key-goes-here>
+```
+
 ### See the Results
+
+Run the app. Activate the sequence of numbers.
 
 Go to [Honeycomb](https://ui.honeycomb.io) and choose the `fib-microsvc` service.
 
