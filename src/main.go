@@ -29,9 +29,9 @@ func main() {
 		os.Stdout.WriteString("Warning: No .env file found. Consider creating one\n")
 	}
 
-	apikey, _ := os.LookupEnv("HONEYCOMB_API_KEY")
+	apikey, apikeyPresent := os.LookupEnv("HONEYCOMB_API_KEY")
 
-	if apikey != nil {
+	if apikeyPresent {
 		serviceName, _ := os.LookupEnv("SERVICE_NAME")
 		os.Stderr.WriteString(fmt.Sprintf("Sending to Honeycomb with API Key <%s> and service name %s\n", apikey, serviceName))
 
@@ -44,7 +44,7 @@ func main() {
 		}
 		defer otelShutdown()
 	} else {
-		log.Info("Honeycomb API key not set - disabling OpenTelemetry")
+		os.Stdout.WriteString("Honeycomb API key not set - disabling OpenTelemetry")
 	}
 
 	mux := http.NewServeMux()
