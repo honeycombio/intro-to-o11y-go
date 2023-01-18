@@ -33,7 +33,7 @@ func main() {
 	apikey, apikeyPresent := os.LookupEnv("HONEYCOMB_API_KEY")
 
 	if apikeyPresent && !strings.HasPrefix(apikey, "your") {
-		serviceName, _ := os.LookupEnv("SERVICE_NAME")
+		serviceName, _ := os.LookupEnv("OTEL_SERVICE_NAME")
 		os.Stderr.WriteString(fmt.Sprintf("Sending to Honeycomb with API Key <%s> and service name %s\n", apikey, serviceName))
 
 		otelShutdown, err := launcher.ConfigureOpenTelemetry(
@@ -54,9 +54,9 @@ func main() {
 	mux.Handle("/favicon.ico", http.NotFoundHandler())
 	mux.Handle("/fib", otelhttp.NewHandler(otelhttp.WithRouteTag("/fib", http.HandlerFunc(fibHandler)), "fibonacci", otelhttp.WithPublicEndpoint()))
 	mux.Handle("/fibinternal", otelhttp.NewHandler(otelhttp.WithRouteTag("/fibinternal", http.HandlerFunc(fibHandler)), "fibonacci"))
-	os.Stderr.WriteString("Initializing the server... look for the app on http://localhost:3000\n")
+	os.Stderr.WriteString("Initializing the server... look for the app on http://localhost:3001\n")
 
-	err = http.ListenAndServe(":3000", mux)
+	err = http.ListenAndServe(":3001", mux)
 	if err != nil {
 		log.Fatalf("Could not start web server: %s", err)
 	}
@@ -100,7 +100,7 @@ func fibHandler(w http.ResponseWriter, req *http.Request) {
 				err := func() error {
 					ictx, sp := tr.Start(ctx, "fibClient")
 					defer sp.End()
-					url := fmt.Sprintf("http://127.0.0.1:3000/fibinternal?index=%d", n)
+					url := fmt.Sprintf("http://127.0.0.1:3001/fibinternal?index=%d", n)
 					// trace.SpanFromContext(ictx).SetAttributes(attribute.String("url", url))
 					// trace.SpanFromContext(ictx).AddEvent("Fib loop count", trace.WithAttributes(attribute.Int("fib-loop", n)))
 					req, _ := http.NewRequestWithContext(ictx, "GET", url, nil)

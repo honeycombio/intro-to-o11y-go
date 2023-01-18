@@ -12,8 +12,8 @@ Recommended:
 
 Gitpod is a free cloud environment where you can run the example without needing to clone the code or install Go on your machine.
 
-You can also clone this repo and run the app locally. 
-If you use VSCode Devcontainers, this repository is set up for that. 
+You can also clone this repo and run the app locally.
+If you use VSCode Devcontainers, this repository is set up for that.
 Otherwise, the app will require golang (version 1.17+) to be [installed](https://go.dev/doc/install).
 
 ### Start the App
@@ -22,11 +22,11 @@ Otherwise, the app will require golang (version 1.17+) to be [installed](https:/
 
 ### See the App
 
-If you are running the app in Gitpod, navigate to the "Ports" tab and click the address for port 3000 to open the app in a new tab:
+If you are running the app in Gitpod, navigate to the "Ports" tab and click the address for port 3001 to open the app in a new tab:
 
 ![Gitpod open address](img/gitpod-ports-go.png "Gitpod open address")
 
-If you are running locally, access the app at [http://localhost:3000](http://localhost:3000)
+If you are running locally, access the app at [http://localhost:3001](http://localhost:3001)
 
 Activate the sequence of numbers by selecting the **Go** button.
 
@@ -48,7 +48,7 @@ Next, the repo comes with an example env file you can copy to get started:
 
 `cp .env.example .env`
 
-Edit `.env` and replace the placeholder value for HONEYCOMB_API_KEY with your own Honeycomb API key. 
+Edit `.env` and replace the placeholder value for HONEYCOMB_API_KEY with your own Honeycomb API key.
 This file will be ignored by git, so you will not accidentally commit your API key.
 
 ```bash
