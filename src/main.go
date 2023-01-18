@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -31,7 +32,7 @@ func main() {
 
 	apikey, apikeyPresent := os.LookupEnv("HONEYCOMB_API_KEY")
 
-	if apikeyPresent {
+	if apikeyPresent && !strings.HasPrefix(apikey, "your") {
 		serviceName, _ := os.LookupEnv("SERVICE_NAME")
 		os.Stderr.WriteString(fmt.Sprintf("Sending to Honeycomb with API Key <%s> and service name %s\n", apikey, serviceName))
 

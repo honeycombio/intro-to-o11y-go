@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ ! -f ".env" ]
+then
+  echo "Creating .env -- update it with your API key!"
+  cp .env.example .env
+fi
 
 cd src
 cp ../.env . # we need .env to be in this directory
