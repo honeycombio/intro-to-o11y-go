@@ -21,7 +21,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	honeycomb "github.com/honeycombio/honeycomb-opentelemetry-go"
-	"github.com/honeycombio/opentelemetry-go-contrib/launcher"
+	"github.com/honeycombio/otel-launcher-go/launcher"
 )
 
 func main() {
@@ -165,7 +165,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
       }
     </style>
        <script src="/sequence.js" defer></script>
- 
+
   </head>
   <body>
     <header>
